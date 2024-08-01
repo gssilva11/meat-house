@@ -1,0 +1,24 @@
+/* src/components/FilterSidebar.css
+.filter-sidebar {
+  background-color: #eee;
+  padding: 1rem;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%) rotate(-45deg);
+  transform-origin: left top;
+  width: 20%;
+}
+
+.filter-sidebar h4 {
+  margin: 0 0 1rem 0;
+}
+
+.filter-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.filter-sidebar li {
+  margin: 0.5rem 0;
+} */

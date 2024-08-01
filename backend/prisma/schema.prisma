@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id_product        Int                 @id @default(autoincrement())
+
+  name              String              @unique
+  price             Decimal       
+  weight            Decimal       
+  imageProduct      String              @unique
+  category          String        
+  availability      Boolean             @default(true)
+
+  class             Class               @relation(fields: [category], references: [class])
+  orderItem         OrderItem[]
+}
+
+model Class {
+  class             String                 @id
+  product           Product[]
+}
+
+model Customer {
+  id_customer       Int                 @id @default(autoincrement())
+  name              String
+  ident_document    String              @unique
+  birth_date        DateTime
+  phone             String              @unique
+  email             String              @unique
+  
+  customerAddress   CustomerAddress[]
+  order             Order[]
+}
+
+model CustomerAddress {
+  id_address        Int                 @unique @default(autoincrement())
+  id_customer       Int
+
+  street_name       String
+  house_number      Int
+  complements       String
+  neighborhood      String
+  city              String
+  state             String
+  
+  customer          Customer            @relation(fields: [id_customer], references: [id_customer])
+}       
+
+model Order {       
+  id_order          Int                  @id @default(autoincrement())
+
+  id_customer       Int
+  date_order        DateTime
+  status            Status
+
+  customer          Customer            @relation(fields: [id_customer], references: [id_customer])
+  orderItems        OrderItem[]
+}       
+
+enum Status {
+  CART  
+  AWAITING        
+  PREPARING       
+  DECLINE       
+  CANCELED        
+  READY       
+  DONE        
+}       
+
+model OrderItem {       
+  id_orderItem      Int                 @id @default(autoincrement())
+
+  id_order          Int
+  quantity          Int       
+  id_product        Int       
+  id_cuttingType    Int
+  priceOnTheDay     Int       
+  description       String              @default("-") @db.VarChar(250)
+  thickness         Thickness           @default(MEDIUM)
+
+  cuttingType       CuttingType         @relation(fields: [id_cuttingType], references: [id_cuttingType])
+  product           Product             @relation(fields: [id_product], references: [id_product])
+  order             Order               @relation(fields: [id_order], references: [id_order])
+
+}       
+
+model CuttingType {         
+  // BIFE; TIRAS; PECA_INTEIRA; MOIDA; CHURRASCO
+  id_cuttingType    Int                  @id @default(autoincrement())
+  cuttingType       String               @unique
+
+  orderItems        OrderItem[]        
+}       
+
+enum Thickness {        
+  SMALL       
+  MEDIUM        
+  LARGE       
+}       
+
+model User {        
+  id                Int                   @id        @default(autoincrement())
+  first_name        String        
+  last_name         String        
+  email             String                @unique
+  password          String        
+  is_admin          Boolean               @default(false)
+}       
