@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Box, IconButton } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import promocao1 from '../assets/banner/banner1.jpg';
-import promocao2 from '../assets/banner/banner2.jpg';
-import promocao3 from '../assets/banner/banner3.jpg';
-import promocao4 from '../assets/banner/banner4.jpg';
+import promocao1 from '../assets/banner/1.jpg';
+import promocao2 from '../assets/banner/2.jpg';
+import promocao3 from '../assets/banner/3.jpg';
+import promocao4 from '../assets/banner/4.jpg';
 
 const images = [promocao1, promocao2, promocao3, promocao4];
 

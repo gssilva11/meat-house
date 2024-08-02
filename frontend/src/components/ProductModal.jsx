@@ -9,8 +9,7 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
-  Tooltip,
-  TextField,
+  TextareaAutosize,
   Divider
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -26,14 +25,28 @@ const thicknessTypes = {
 
 const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   const [quantity, setQuantity] = useState(100);
-  const [selectedCut, setSelectedCut] = useState(null);
+  const [selectedCut, setSelectedCut] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [cuts, setCuts] = useState([]);
-  const [observations, setObservations] = useState('');
+  const [description, setDescription] = useState('');
   const maxChars = 150;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const handleDescriptionChange = (event) => {
+    const value = event.target.value.replace(/\n/g, ''); // Remove quebras de linha
+    if (value.length <= maxChars) {
+      setDescription(value);
+    }
+  };
+
+  const resetFields = () => {
+    setQuantity(100);
+    setSelectedCut('');
+    setSelectedSize('');
+    setDescription('');
+  };
 
   useEffect(() => {
     if (product && open) {
@@ -54,18 +67,20 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
     try {
       const selectedProduct = {
         quantity,
-        id_product: product.id_product,
-        id_cuttingType: selectedCut.id_cuttingType,
         thickness: thicknessTypes[selectedSize],
-        // ID DEFINIDO COMO 10 PARA TESTES
-        id_customer: 10
+        description,
+        priceOnTheDay: Number((product.price * quantity / 1000).toFixed(2)),
+        cuttingType: { connect: { id_cuttingType: selectedCut } },
+        product: { connect: { id_product: product.id_product } },
+        order: { connect: { id_order: 3 } }, // id test
       };
-
+  
       const success = await myfetch.post('orderItem', selectedProduct);
-
+  
       if (success) {
         notifySuccess('Item adicionado ao carrinho!');
         onAddToCart(selectedProduct);
+        resetFields(); // Clear the fields after adding to cart
         return;
       } else {
         notifyError('Erro ao adicionar item ao carrinho');
@@ -76,27 +91,25 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
     }
   };
 
+  useEffect(() => {
+    if (!open) {
+      resetFields();
+    }
+  }, [open]);
+
   const handleCutChange = (event) => {
-    const selectedCutId = event.target.value;
-    const selectedCutObject = cuts.find(cut => cut.id_cuttingType === selectedCutId);
-    setSelectedCut(selectedCutObject);
+    setSelectedCut(event.target.value);
   };
 
   const handleSizeChange = (event) => {
     setSelectedSize(event.target.value);
   };
 
-  const handleObservationsChange = (event) => {
-    if (event.target.value.length <= maxChars) {
-      setObservations(event.target.value);
-    }
-  };
-
   const increaseQuantity = () => setQuantity(prev => prev + 100);
-  const decreaseQuantity = () => setQuantity(prev => prev - 100 > 0 ? prev - 100 : 0);
   const increaseQuantityByKg = () => setQuantity(prev => prev + 1000);
-  const decreaseQuantityByKg = () => setQuantity(prev => prev - 1000 > 0 ? prev - 1000 : 0);
-
+  const decreaseQuantity = () => setQuantity(prev => (prev - 100 >= 100 ? prev - 100 : 100));
+  const decreaseQuantityByKg = () => setQuantity(prev => (prev - 1000 >= 100 ? prev - 1000 : 100));
+  
   return (
     <>
       <Modal open={open} onClose={onClose} aria-labelledby="modal-title" aria-describedby="modal-description">
@@ -106,10 +119,9 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: isMobile ? '80%' : 1050,
+            width: isMobile ? '80%' : '1050px',
             height: isMobile ? 'auto' : 530,
-            //Talvez votar para #F0F0F0
-            background: 'linear-gradient(90deg, #000 51%, rgba(240,240,240,1) 52%)',
+            background: isMobile ? '#f0f0f0' : 'linear-gradient(90deg, #e4e4e4 51%, rgba(240,240,240,1) 52%)',
             border: `2px solid #C62828`,
             boxShadow: 24,
             p: 4,
@@ -119,7 +131,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
           }}
         >
           {product && (
-            <div style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+            <div style={{ display: 'flex', width: '100%', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
               {!isMobile && (
                 <>
                   <img
@@ -130,47 +142,30 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                       height: 'auto',
                       objectFit: 'contain',
                       marginRight: '16px',
-                      border: '2px solid #000',
+                      border: '3px solid #000',
                     }}
                   />
-                  <Typography sx={{ fontSize: '0.8rem', position:'absolute', color:'#f0f0f0', alignSelf:'flex-end', mb:'25px', width:'480px'}}>
-                  <InfoIcon fontSize="small" sx={{ color: '#f0f0f0', marginRight:'10px', position:'absolute' }} />
-                  ㅤㅤO peso do produto pode ter uma variação de aproximadamente 100 gramas. Isso pode ㅤㅤafetar o valor final da compra.
+                  <Typography sx={{ fontSize: '0.8rem', position: 'absolute', color: '#272727', alignSelf: 'flex-end', mb: '25px', width: '480px' }}>
+                    <InfoIcon fontSize="small" sx={{ color: '#272727', marginRight: '10px', position: 'absolute' }} />
+                    ㅤㅤO peso do produto pode ter uma variação de aproximadamente 100 gramas. Isso pode ㅤㅤafetar o valor final da compra.
                   </Typography>
                   <Divider orientation="vertical" flexItem sx={{ borderColor: 'transparent', mr: '13px', height: '480px', alignSelf: 'center' }} />
                 </>
               )}
-              <div style={{ flexGrow: 1, width: '50%' }}>
+              <div style={{ flexGrow: 1, width: '100%' }}>
                 <IconButton
                   onClick={onClose}
                   sx={{
                     color: '#C62828',
                     position: 'absolute',
-                    top: 16,
-                    left: 16
+                    top: isMobile ? 5 : 16,
+                    left: isMobile ? 5 : 16
                   }}
                 >
                   <ArrowBackIcon />
                 </IconButton>
-                <Typography id="modal-title" variant="h4" component="h2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography id="modal-title" variant="h4" component="h2" sx={{ display: 'flex', justifyContent: 'center' }}>
                   {product.name}
-                  {/* <Typography>
-                    <Tooltip
-                      title={
-                        <Typography sx={{ fontSize: '1rem' }}>
-                          O peso do produto pode ter uma variação de aproximadamente 100 gramas. Isso pode afetar o valor final da compra.
-                        </Typography>
-                      }
-                      sx={{
-                        '& .MuiTooltip-tooltip': {
-                          padding: '4px 8px',
-                          fontSize: '0.875rem',
-                        },
-                      }}
-                    >
-                      <InfoIcon fontSize="medium" sx={{ color: '#272727' }} />
-                    </Tooltip>
-                  </Typography> */}
                 </Typography>
                 <Typography id="modal-description" sx={{ mt: 2 }}>
                   Preço por kg: R${product.price}
@@ -179,7 +174,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                   Total: R${(product.price * quantity / 1000).toFixed(2)}
                 </Typography>
                 <Select
-                  value={selectedCut ? selectedCut.id_cuttingType : ''}
+                  value={selectedCut}
                   onChange={handleCutChange}
                   displayEmpty
                   fullWidth
@@ -246,69 +241,72 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box position="relative" width="450px">
-                  <TextField
-                    multiline
+                <Box position="relative" width="100%" mt={2}>
+                  <TextareaAutosize
+                    aria-label="Observações"
                     placeholder="Observações:"
-                    value={observations}
-                    onChange={handleObservationsChange}
-                    InputProps={{
-                      style: {
-                        color: '#272727',
-                        marginTop: '3px',
-                        marginLeft: '4px',
-                      },
-                    }}
-                    sx={{
-                      width: '460px',
-                      fontSize: '18px',
-                      lineHeight: '1rem',
-                      padding: '2px', // Remover padding
-                      borderRadius: '4px 4px 0 4px',
-                      border: '0.1rem solid #272727',
-                      mt: 2,
-                      height: '85px',
-                      '& .MuiOutlinedInput-root': {
-                        padding: '0px', // Remover padding interno
-                        '& fieldset': {
-                          borderColor: 'transparent', // Remover a borda interna
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'transparent', // Remover a borda interna ao passar o mouse
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'transparent', // Remover a borda interna ao focar
-                        },
-                        '& textarea': {
-                          color: '#272727',
-                          marginTop: '3px',
-                          marginLeft: '4px',
-                          padding: '0px', // Remover padding interno do textarea
-                        },
-                      },
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    maxLength={maxChars}
+                    style={{
+                      fontFamily: '"Sean Slab", serif',
+                      backgroundColor: '#f0f0f0',
+                      width: '100%',
+                      height: '50px',
+                      borderColor: '#020002',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderRadius: '4px',
+                      padding: '8px',
+                      boxSizing: 'border-box',
+                      resize: 'none',
+                      color: '#272727',
+                      overflowY: 'auto',
+                      background: '#f0f0f0',
+                      scrollbarWidth: 'thin', // For Firefox
+                      scrollbarColor: '#f0f0f0 transparent' // For Firefox
                     }}
                   />
                   <Typography
                     variant="body2"
                     color="textSecondary"
-                    position="absolute"
-                    bottom="0px"
-                    right="-5px"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      color: '#272727'
+                    }}
                   >
-                    {observations.length}/{maxChars}
+                    {description.length}/{maxChars}
                   </Typography>
                 </Box>
 
                 <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
                     <IconButton
+                      onClick={decreaseQuantity}
+                      size="small"
+                      sx={{
+                        padding: '2px 5px',
+                        border: '1px solid red',
+                        marginRight: '15px',
+                        borderRadius: '5px',
+                        mb: '10px',
+                        '&:hover': {
+                          backgroundColor: 'inherit',
+                        },
+                      }}
+                    >
+                      <Typography variant="body1" sx={{ color: '#C62828' }}>-100g</Typography>
+                    </IconButton>
+                    <IconButton
                       onClick={decreaseQuantityByKg}
                       size="large"
                       sx={{
-                        padding: '2px 5px 2px 5px',
-                        marginRight: '15px',
+                        padding: '2px 5px',
                         backgroundColor: 'red',
                         borderRadius: '5px',
+                        mb: '10px',
                         border: '1px solid red',
                         '&:hover': {
                           backgroundColor: 'red',
@@ -317,33 +315,20 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                     >
                       <Typography variant="body1" sx={{ color: '#f0f0f0' }}>-1Kg</Typography>
                     </IconButton>
-                    <IconButton
-                      onClick={decreaseQuantity}
-                      size="small"
-                      sx={{
-                        padding: '2px 5px 2px 5px',
-                        border: '1px solid red',
-                        borderRadius: '5px',
-                        '&:hover': {
-                          backgroundColor: 'inherit',
-                        },
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ color: '#C62828' }}>-100g</Typography>
-                    </IconButton>
                   </Box>
                   <Typography variant="h6" component="p" sx={{ mx: 2, margin: '0 40px 0 40px' }}>
-                    {quantity} g
+                    {quantity}g
                   </Typography>
                   <Box>
                     <IconButton
                       onClick={increaseQuantity}
                       size="small"
                       sx={{
-                        padding: '2px 5px 2px 5px',
+                        padding: '2px 5px',
                         marginRight: '15px',
                         border: '1px solid green',
                         borderRadius: '5px',
+                        mb: '10px',
                         '&:hover': {
                           backgroundColor: 'inherit',
                         },
@@ -355,9 +340,10 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                       onClick={increaseQuantityByKg}
                       size="large"
                       sx={{
-                        padding: '2px 5px 2px 5px',
+                        padding: '2px 5px',
                         backgroundColor: 'green',
                         borderRadius: '5px',
+                        mb: '10px',
                         border: '1px solid green',
                         '&:hover': {
                           backgroundColor: 'green',
@@ -368,11 +354,10 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                     </IconButton>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'end', mt: '10px' }}>
+                <Box sx={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end', mt: 2, width: isMobile ? '100%' : 'auto' }}>
                   <Button
                     variant="contained"
                     color="primary"
-                    sx={{ mt: 2, justifyContent: 'flex-end' }}
                     onClick={handleAddToCart}
                   >
                     Adicionar ao Carrinho
@@ -389,4 +374,3 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
 };
 
 export default ProductModal;
-

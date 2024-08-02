@@ -5,15 +5,15 @@ import {
   TextField,
   Typography,
   Button,
-  Divider,
-  Container,
   Paper,
+  Container,
+  Divider
 } from '@mui/material';
 import Navbar from '../components/Navbar';
 import Notification, { notifySuccess, notifyError } from '../components/Notification';
 import logo from '../assets/logo/logo.png'; // Certifique-se de que o caminho está correto
 import InputMask from 'react-input-mask';
-import Customer from '../models/Customer';
+import myfetch from '../utils/myfetch'; // Supondo que você tenha uma função utilitária para chamadas API
 
 const LoginCadastro = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +24,10 @@ const LoginCadastro = () => {
     email: '',
     senha: '',
     confirmarSenha: '',
+    loginEmail: '',
+    loginSenha: '',
   });
+  const [isLogin, setIsLogin] = useState(true); // Controla o modo de exibição
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,52 +38,99 @@ const LoginCadastro = () => {
   };
 
   const formatDateToISO = (dateStr) => {
-    // Verifica se a data está no formato esperado
     const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
     const match = dateStr.match(regex);
-    
+
     if (match) {
       const [, day, month, year] = match;
-      const formattedDate = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-      return formattedDate; // Retorna o objeto Date
+      const formattedDate = `${year}-${month}-${day}T00:00:00.000Z`;
+      return formattedDate;
     }
-    
-    return null; // Retorna null se a data não estiver no formato esperado
+
+    return null;
   };
 
-  const handleSubmit = () => {
-    if (!formData.birth_date) {
-      notifyError('Data de nascimento é obrigatória');
-      return;
-    }
+  const handleSubmit = async () => {
+    if (isLogin) {
+      // Lógica de login
+      try {
+        const response = await myfetch.post('login', {
+          email: formData.loginEmail,
+          password: formData.loginSenha,
+        });
 
-    const formattedDate = formatDateToISO(formData.birth_date);
-    if (!formattedDate) {
-      notifyError('Data de nascimento inválida');
-      return;
-    }
+        if (response) {
+          notifySuccess('Login realizado com sucesso!');
+          setFormData({
+            ...formData,
+            loginEmail: '',
+            loginSenha: '',
+          });
+          // Redirecionar ou tratar o sucesso do login aqui
+        } else {
+          notifyError('Erro ao fazer login');
+        }
+      } catch (e) {
+        console.error('Erro ao fazer login:', e);
+        notifyError('Erro ao fazer login. Por favor, tente novamente.');
+      }
+    } else {
+      // Lógica de cadastro
+      if (!formData.birth_date) {
+        notifyError('Data de nascimento é obrigatória');
+        return;
+      }
 
-    const customerData = {
-      ...formData,
-      birth_date: formattedDate, // Converter para objeto Date
-    };
+      if (formData.senha.length < 8) {
+        notifyError('A senha deve ter no mínimo 8 caracteres');
+        return;
+      }
 
-    try {
-      const validData = Customer.parse(customerData);
-      notifySuccess('Cadastro realizado com sucesso!');
-      // Reset form fields after successful submission
-      setFormData({
-        name: '',
-        ident_document: '',
-        birth_date: '',
-        phone: '',
-        email: '',
-        senha: '',
-        confirmarSenha: '',
-      });
-    } catch (e) {
-      console.error('Erro na validação:', e.errors);
-      notifyError('Erro na validação dos dados. Por favor, verifique os campos e tente novamente.');
+      if (formData.senha !== formData.confirmarSenha) {
+        notifyError('As senhas não coincidem');
+        return;
+      }
+
+      const formattedDate = formatDateToISO(formData.birth_date);
+      if (!formattedDate) {
+        notifyError('Data de nascimento inválida');
+        return;
+      }
+
+      const customerData = {
+        name: formData.name,
+        ident_document: formData.ident_document,
+        birth_date: formattedDate,
+        phone: formData.phone,
+        email: formData.email,
+        // `senha` não é enviada diretamente para o backend. Normalmente, a senha deve ser criptografada antes de ser armazenada
+      };
+
+      try {
+        // Enviar dados para o backend para criar o cliente
+        const response = await myfetch.post('customer', customerData);
+
+        if (response) {
+          notifySuccess('Cadastro realizado com sucesso!');
+          setFormData({
+            name: '',
+            ident_document: '',
+            birth_date: '',
+            phone: '',
+            email: '',
+            senha: '',
+            confirmarSenha: '',
+            loginEmail: '',
+            loginSenha: '',
+          });
+          return;
+        } else {
+          notifyError('Erro ao criar cliente');
+        }
+      } catch (e) {
+        console.error('Erro na criação do cliente:', e);
+        notifyError('Erro ao criar cliente. Por favor, tente novamente.');
+      }
     }
   };
 
@@ -90,7 +140,7 @@ const LoginCadastro = () => {
       <Container maxWidth="lg">
         <Box sx={{ my: 4 }}>
           <Box sx={{ textAlign: 'center', marginBottom: '20px' }}>
-            <img src={logo} alt="Casa de Carnes Logo" style={{ height: '100px' }} />
+            <img src={logo} alt="Logo" style={{ height: '100px' }} />
           </Box>
           <Paper variant="elevation" sx={{ padding: 2, marginBottom: 1, backgroundColor: '#020002' }}>
             <Grid container spacing={0} justifyContent="center">
@@ -258,41 +308,74 @@ const LoginCadastro = () => {
                 </Paper>
               </Grid>
               <Divider orientation="vertical" flexItem sx={{ mx: 5, borderColor: '#fff' }} />
-              <Grid item xs={12} md={3}>
+              <Grid>
                 <Typography variant="h4" gutterBottom sx={{ color: '#f0f0f0' }}>
                   Entrar
                 </Typography>
-                <Paper variant="outlined" sx={{ padding: 2, marginBottom: 2, backgroundColor: '#840404', borderColor: '#b0b0b0', borderWidth: 1 }}>
-                  <form noValidate autoComplete="off">
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      margin="normal"
-                      variant="outlined"
-                      type="email"
-                      InputLabelProps={{
-                        shrink: true,
-                        style: { color: '#f0f0f0' },
-                      }}
-                      InputProps={{ style: { height: '40px' } }}
-                    />
-                    <TextField
-                      fullWidth
-                      label="Senha"
-                      margin="normal"
-                      variant="outlined"
-                      type="password"
-                      InputLabelProps={{
-                        shrink: true,
-                        style: { color: '#f0f0f0' },
-                      }}
-                      InputProps={{ style: { height: '40px' } }}
-                    />
-                    <Button variant="contained" color="tertiary" sx={{ mt: 2, color: '#f0f0f0' }} fullWidth>
-                      Entrar
-                    </Button>
-                  </form>
-                </Paper>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Paper variant="outlined" sx={{ padding: 2, marginBottom: 1, backgroundColor: '#800000', borderColor: '#b0b0b0', borderWidth: 1, width: '320px', alignSelf: 'center' }}>
+                    <Grid container spacing={1}>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Email"
+                          margin="normal"
+                          variant="outlined"
+                          type="email"
+                          name="loginEmail"
+                          value={formData.loginEmail}
+                          onChange={handleChange}
+                          InputLabelProps={{
+                            shrink: true,
+                            style: { color: '#f0f0f0' },
+                          }}
+                          InputProps={{ style: { height: '40px' } }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Senha"
+                          margin="normal"
+                          variant="outlined"
+                          type="password"
+                          name="loginSenha"
+                          value={formData.loginSenha}
+                          onChange={handleChange}
+                          InputLabelProps={{
+                            shrink: true,
+                            style: { color: '#f0f0f0' },
+                          }}
+                          InputProps={{ style: { height: '40px' } }}
+                        />
+                      </Grid>
+                    </Grid>
+                    <Box sx={{ textAlign: 'center', mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmit}
+                        sx={{ width: '170px'}}
+                      >
+                        Entrar
+                      </Button>
+                    </Box>
+                    <Box sx={{ textAlign: 'center', mt: 2}}>
+                      <Button
+                        variant="text"
+                        color="tertiary"
+                        onClick={() => setIsLogin(false)}
+                        sx={{ width:'auto', textDecoration:'underline', color:'#f0f0f0' }}
+                      >
+                        Esqueceu sua senha?
+                      </Button>
+                    </Box>
+                  </Paper>
+                </Box>
+
+                <Divider orientation="vertical" flexItem sx={{ mx: 5, borderColor: '#fff' }} />
               </Grid>
             </Grid>
           </Paper>

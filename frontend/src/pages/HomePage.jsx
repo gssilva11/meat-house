@@ -13,6 +13,8 @@ import myfetch from '../utils/myfetch';
 import detalheIcon from '../assets/logo/tituloDetalhe.png';
 import InfoIcon from '@mui/icons-material/Info';
 import { Textfit } from 'react-textfit';
+import { useMediaQuery } from '@mui/material'; // Importar useMediaQuery
+import logo from '../assets/logo/logo.png'
 
 const getImagePath = (imageProduct) => {
   return `${imageProduct}`;
@@ -53,6 +55,8 @@ const HomePage = () => {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
 
+  const isMobile = useMediaQuery('(max-width:600px)'); // Verificar se é um dispositivo móvel
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -87,11 +91,6 @@ const HomePage = () => {
     setOpen(false);
   };
 
-  const updateItem = (index) => {
-    setSelectedProductIndex(index);
-    setProductModalOpen(true);
-  };
-
   const removeItem = (index) => {
     setCartItems(cartItems.filter((_, i) => i !== index));
   };
@@ -117,7 +116,7 @@ const HomePage = () => {
       <Navbar cartItems={cartItems} setCartOpen={setCartOpen} />
       <Banner />
       <Buttons />
-      <div style={{ margin: '2% 10% 5% 10%' }}>
+      <div style={{ margin: isMobile ? '2% 2% 5% 2%' : '2% 10% 5% 10%' }}>
         <Buttons onExpandCategory={handleExpandCategory} />
         {sortedCategories.map((category) => (
           (expandedCategory === null || expandedCategory === category) && (
@@ -153,12 +152,12 @@ const HomePage = () => {
                   {category}
                   <img src={detalheIcon} alt="detalhe" style={{ marginLeft: '15px', height: '25px' }} />
                 </Typography>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginBottom: '40px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '5px' : '16px', justifyContent: 'center', marginBottom: '40px' }}>
                   {(expandedCategory === category ? groupedProducts[category] : groupedProducts[category].slice(0, 4)).map(product => (
                     <Tilt key={product.id}>
                       <Card
                         sx={{
-                          width: '200px', // Reduzindo o tamanho do card em 20%
+                          width: isMobile ? '175px' : '200px', // Reduzindo o tamanho do card em 20%
                           height: '275px',
                           backgroundColor: '#010203',
                           border: '1px solid #33363d',
@@ -181,6 +180,7 @@ const HomePage = () => {
                             >
                               {product.name}
                             </Textfit>
+                            {(!isMobile &&
                             <Tooltip
                               title={
                                 <Typography sx={{ fontSize: '1rem' }}>
@@ -197,6 +197,7 @@ const HomePage = () => {
                             >
                               <InfoIcon fontSize="medium" sx={{ color: '#f0f0f0' }} />
                             </Tooltip>
+                            )}
                           </Box>
                         </div>
                         <div style={{ height: '120px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -204,7 +205,7 @@ const HomePage = () => {
                             src={getImagePath(product.imageProduct)}
                             alt={product.name}
                             loading="lazy"
-                            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', borderRadius: '11px 0 11px 0' }}
+                            style={{ maxHeight: '100%', maxWidth: isMobile ? '90%' : '100%', objectFit: 'contain', borderRadius: '11px 0 11px 0' }}
                           />
                         </div>
                         <CardContent style={{ padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -233,8 +234,13 @@ const HomePage = () => {
                     <Tilt>
                       <Card
                         sx={{
-                          width: '200px', // Reduzindo o tamanho do card em 20%
-                          height: '275px',
+                          backgroundImage: `url(${logo})`,
+                          backgroundSize: '120px', // Ajustar a imagem para cobrir o card
+                          backgroundPositionY: '15%', // Centralizar a imagem
+                          backgroundPositionX: 'center',
+                          backgroundRepeat: 'no-repeat', // Não repetir a imagem
+                          width: isMobile ? '355px' : '200px',
+                          height: isMobile ? '175px' : '275px',
                           backgroundColor: '#010203',
                           border: '1px dotted #33363d',
                           boxShadow: '1px 2px 3.5px #121212',
@@ -242,10 +248,11 @@ const HomePage = () => {
                           justifyContent: 'center',
                           alignItems: 'center',
                           cursor: 'pointer',
+                          mt: isMobile ? '10px' : '0'
                         }}
                         onClick={() => handleExpandCategory(category)}
                       >
-                        <Typography variant="h6" sx={{ color: '#f0f0f0', textDecoration: 'underline' }}>Ver mais produtos!</Typography>
+                        <Typography variant='h6' sx={{ color: '#f0f0f0', textDecoration: 'underline' }}>Ver mais produtos!</Typography>
                       </Card>
                     </Tilt>
                   )}
@@ -263,30 +270,6 @@ const HomePage = () => {
             onAddToCart={addToCart}
           />
         )}
-        {/* <Modal open={cartOpen} onClose={() => setCartOpen(false)}>
-          <Box sx={{ width: '80%', margin: 'auto', marginTop: '50px', backgroundColor: '#fff', padding: '20px', borderRadius: '10px', maxHeight: '80vh', overflow: 'auto' }}>
-            <Typography variant="h6" gutterBottom>Carrinho de Compras</Typography>
-            {cartItems.length === 0 ? (
-              <Typography variant="body1">Seu carrinho está vazio.</Typography>
-            ) : (
-              <List>
-                {cartItems.map((item, index) => (
-                  <ListItem key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <ListItemText primary={item.name} secondary={`Preço: R$${item.price}`} />
-                    <div>
-                      <IconButton onClick={() => updateItem(index)}><EditIcon /></IconButton>
-                      <IconButton onClick={() => removeItem(index)}><DeleteIcon /></IconButton>
-                    </div>
-                  </ListItem>
-                ))}
-              </List>
-            )}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-              <Button variant="contained" onClick={() => setCartOpen(false)}>Continuar Comprando</Button>
-              <Button variant="contained" color="primary" onClick={proceedToCheckout} disabled={cartItems.length === 0}>Prosseguir para o Checkout</Button>
-            </Box>
-          </Box>
-        </Modal> */}
         {selectedProductIndex !== null && (
           <ProductModal
             open={productModalOpen}
