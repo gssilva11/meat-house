@@ -191,7 +191,7 @@ const UpdateShowcase = () => {
   return (
     <>
       <Navbar />
-      <div style={{ padding: '2rem', backgroundColor: '#f0f0f0', minHeight: '900px', color: '#272727' }}>
+      <div style={{ padding: '2rem', backgroundColor: '#f0f0f0', minHeight: '900px', color: '#272727', margin:'0 1%', borderRadius:'2px' }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h4" align="left" gutterBottom>Vitrine de Produtos</Typography>
         </Box>

@@ -32,7 +32,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   const maxChars = 150;
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 
   const handleDescriptionChange = (event) => {
     const value = event.target.value.replace(/\n/g, ''); // Remove quebras de linha
@@ -74,9 +74,9 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
         product: { connect: { id_product: product.id_product } },
         order: { connect: { id_order: 3 } }, // id test
       };
-  
+
       const success = await myfetch.post('orderItem', selectedProduct);
-  
+
       if (success) {
         notifySuccess('Item adicionado ao carrinho!');
         onAddToCart(selectedProduct);
@@ -109,7 +109,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   const increaseQuantityByKg = () => setQuantity(prev => prev + 1000);
   const decreaseQuantity = () => setQuantity(prev => (prev - 100 >= 100 ? prev - 100 : 100));
   const decreaseQuantityByKg = () => setQuantity(prev => (prev - 1000 >= 100 ? prev - 1000 : 100));
-  
+
   return (
     <>
       <Modal open={open} onClose={onClose} aria-labelledby="modal-title" aria-describedby="modal-description">
@@ -313,11 +313,14 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                         },
                       }}
                     >
-                      <Typography variant="body1" sx={{ color: '#f0f0f0' }}>-1Kg</Typography>
+                      <Typography variant="body1" sx={{ color: '#f0f0f0' }}>- 1Kg</Typography>
                     </IconButton>
                   </Box>
                   <Typography variant="h6" component="p" sx={{ mx: 2, margin: '0 40px 0 40px' }}>
                     {quantity}g
+                    <Typography sx={{ color: 'grey', textAlign:'center' }}>
+                      ({quantity / 1000}kg)
+                    </Typography>
                   </Typography>
                   <Box>
                     <IconButton
@@ -350,7 +353,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                         },
                       }}
                     >
-                      <Typography variant="body1" sx={{ color: '#f0f0f0' }}>+1Kg</Typography>
+                      <Typography variant="body1" sx={{ color: '#f0f0f0' }}>+ 1Kg</Typography>
                     </IconButton>
                   </Box>
                 </Box>

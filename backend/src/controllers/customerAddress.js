@@ -47,6 +47,35 @@ controller.retrieveAll = async function(req, res) {
   }
 };
 
+controller.retrieveAll = async function(req, res) {
+  try {
+    const addresses = await prisma.customerAddress.findMany({
+      where: { id_customer: Number(req.params.id) },
+      orderBy: {
+        id_customer: 'asc'
+      }
+    });
+
+    const groupedAddresses = addresses.reduce((acc, address) => {
+      if (!acc[address.id_customer]) {
+        acc[address.id_customer] = [];
+      }
+      acc[address.id_customer].push(address);
+      return acc;
+    }, {});
+
+    const result = Object.keys(groupedAddresses).map(id_customer => ({
+      id_customer,
+      addresses: groupedAddresses[id_customer]
+    }));
+
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+};
+
 controller.retrieveOne = async function(req, res) {
   try {
     const result = await prisma.customerAddress.findMany({

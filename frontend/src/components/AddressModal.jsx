@@ -27,7 +27,7 @@ const AddressModal = ({ open, onClose }) => {
   const [isNewAddressModalOpen, setNewAddressModalOpen] = useState(false);
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 
   useEffect(() => {
     if (open) {

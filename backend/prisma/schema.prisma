@@ -97,7 +97,6 @@ model OrderItem {
 }       
 
 model CuttingType {         
-  // BIFE; TIRAS; PECA_INTEIRA; MOIDA; CHURRASCO
   id_cuttingType    Int                  @id @default(autoincrement())
   cuttingType       String               @unique
 

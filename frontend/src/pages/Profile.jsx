@@ -8,7 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import History from '../components/History.jsx';
-
+import Address from '../components/Address.jsx';
 
 const ProfilePage = () => {
   const { id } = useParams();
@@ -22,25 +22,16 @@ const ProfilePage = () => {
     newPassword: '',
     confirmNewPassword: ''
   });
-  const [addresses, setAddresses] = useState([]);
-  const [addressModalOpen, setAddressModalOpen] = useState(false);
-  const [newAddress, setNewAddress] = useState({
-    street_name: '',
-    house_number: '',
-    complements: '',
-    neighborhood: '',
-    city: '',
-    state: ''
-  });
-  const [selectedAddress, setSelectedAddress] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
+      if (!id) {
+        console.error('User ID is undefined');
+        return;
+      }
       try {
         const data = await myfetch.get(`customer/${id}`);
         setUserData(data);
-        const addressData = await myfetch.get(`customer/${id}/customerAddress`);
-        setAddresses(addressData);
       } catch (error) {
         console.error(error);
       }
@@ -54,10 +45,6 @@ const ProfilePage = () => {
 
   const handlePasswordFieldChange = (field, value) => {
     setPasswordFields({ ...passwordFields, [field]: value });
-  };
-
-  const handleAddressFieldChange = (field, value) => {
-    setNewAddress({ ...newAddress, [field]: value });
   };
 
   const handleSaveEdit = async () => {
@@ -84,17 +71,6 @@ const ProfilePage = () => {
     } catch (error) {
       console.error(error);
       alert("Erro ao alterar a senha!");
-    }
-  };
-
-  const handleSaveAddress = async () => {
-    try {
-      await myfetch.post(`customer/${id}/address`, newAddress);
-      const updatedAddresses = await myfetch.get(`customer/${id}/addresses`);
-      setAddresses(updatedAddresses);
-      setAddressModalOpen(false);
-    } catch (error) {
-      console.error(error);
     }
   };
 
@@ -365,49 +341,38 @@ const ProfilePage = () => {
             </Box>
           )}
           {selectedMenu === 'Endereço' && (
-            <Box>
+            <Box display='flex' flexDirection='column'>
               <Typography variant="h5" gutterBottom>
-                Endereços
+                Endereços cadastrados:
               </Typography>
               <Divider sx={{ mb: 2, backgroundColor: '#f0f0f0' }} />
-
-              {addresses.map((customerAddress, index) => (
-                <Box key={index} sx={{ mb: 2, p: 2, bgcolor: '#1f1f1f', borderRadius: '4px', position: 'relative' }}>
-                  <Typography variant="subtitle1">{customerAddress.street_name}, {customerAddress.house_number}</Typography>
-                  <Typography variant="body2">{customerAddress.neighborhood}, {customerAddress.city} - {customerAddress.state}</Typography>
-                  <Typography variant="body2">{customerAddress.complements}</Typography>
-                  <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
-                    <IconButton onClick={() => handleDeleteAddress(index)} color="primary">
-                      <DeleteIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleSaveAddress(index)} color="secondary">
-                      <EditIcon />
-                    </IconButton>
-                  </Box>
+              <Box display='flex' justifyContent='space-between' width='100%'>
+                <Box display='flex' flexDirection='column' width='50%'>
+                  <Address userId={id} />
                 </Box>
-              ))}
-              {addresses.length < 3 && (
-                <Box
-                  sx={{
-                    mt: 2,
-                    p: 2,
-                    bgcolor: '#272727',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100px'
-                  }}
-                >
-                  <IconButton onClick={() => setAddressModalOpen(true)} color="primary">
-                    <AddIcon sx={{ fontSize: 30 }} />
-                  </IconButton>
+                <Box>
+                  <Divider orientation='vertical' sx={{ backgroundColor: '#303030' }} />
                 </Box>
-              )}
+                <Box sx={{ width: '40%', textAlign: 'left', color: '#ffffff', pl: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 2, color: '#f0f0f0' }}>
+                    Você pode ter até 3 endereços vinculados a sua conta.
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2, color: '#f0f0f0' }}>
+                    Recomendamos incluir um complemento de endereço para garantir que suas entregas sejam realizadas corretamente.
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2, color: '#f0f0f0' }}>
+                    Por favor, certifique-se de que os endereços inseridos estejam atualizados e completos.
+                  </Typography>
+                  <Typography variant="body2" color='#f0f0f0'>
+                    Agradecemos a sua colaboração!
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           )}
+
           {selectedMenu === 'Histórico de Pedidos' && (
-            <Box display='flex' flexDirection='column' >
+            <Box display='flex' flexDirection='column'>
               <Typography variant="h5" gutterBottom>
                 Pedidos Realizados
               </Typography>
@@ -420,16 +385,16 @@ const ProfilePage = () => {
                   <Divider orientation='vertical' sx={{ backgroundColor: '#303030' }} />
                 </Box>
                 <Box sx={{ width: '40%', textAlign: 'left', color: '#ffffff', pl: 2 }}>
-                  <Typography variant="h5" sx={{ mb: 3, textDecoration:'underline' }} >
+                  <Typography variant="h5" sx={{ mb: 3, textDecoration: 'underline' }}>
                     Atenção, ao repetir uma compra:
                   </Typography>
-                  <Typography variant="body2" sx={{ mb: 2 }} >
-                    Os preços dos produtos são atualizados conforme as variações do mercado. Portanto, valores podem sofrer alterações em futuras compras. 
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Os preços dos produtos são atualizados conforme as variações do mercado. Portanto, valores podem sofrer alterações em futuras compras.
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 2, color: '#C62828' }}>
                     Alguns produtos podem estar fora de estoque ou descontinuados.
                   </Typography>
-                  <Typography variant="body2" >
+                  <Typography variant="body2">
                     Agradecemos a compreensão.
                   </Typography>
                 </Box>
@@ -438,210 +403,43 @@ const ProfilePage = () => {
           )}
         </Box>
       </Box>
-      <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: '#f0f0f0',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}
-        >
-          <IconButton onClick={() => setEditModalOpen(false)} sx={{ position: 'absolute', left: 10, top: 10 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h5" sx={{ mb: 2, textAlign: 'center', mt: '0px' }}>
-            Atualizar Dados
+      <Modal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          border: '2px solid #000',
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <Typography id="edit-modal-title" variant="h6" component="h2">
+            Editar Perfil
           </Typography>
           <TextField
             label="Nome"
             variant="filled"
             value={editField.name}
             onChange={(e) => handleEditFieldChange('name', e.target.value)}
-            fullWidth
-            sx={{
-              width: '100%',
-              mb: 2,
-              bgcolor: '#f0f0f0',
-              '& .MuiInputBase-input': { color: '#272727' },
-              '& .MuiInputLabel-root': { color: '#8B0000' },
-            }}
+            sx={{ mb: 2, width: '100%' }}
           />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              onClick={() => setEditModalOpen(false)}
-              sx={{
-                backgroundColor: '#FFFFFF',
-                color: '#8B0000',
-                '&:hover': {
-                  backgroundColor: '#f0f0f0',
-                },
-                mr: '10px'
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSaveEdit}
-              sx={{
-                backgroundColor: '#C62828',
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: '#600000',
-                },
-              }}
-            >
-              Salvar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-      <Modal open={addressModalOpen} onClose={() => setAddressModalOpen(false)}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 600,
-            bgcolor: '#f0f0f0',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}
-        >
-          <IconButton onClick={() => setAddressModalOpen(false)} sx={{ position: 'absolute', left: 10, top: 10 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h5" sx={{ mb: 2, textAlign: 'center', mt: '0px' }}>
-            Cadastrar Novo Endereço
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
-            <TextField
-              label="Nome da Rua"
-              variant="filled"
-              value={newAddress.street_name}
-              onChange={(e) => handleAddressFieldChange('street_name', e.target.value)}
-              sx={{
-                width: '100%',
-                mb: 2,
-                bgcolor: '#f0f0f0',
-                '& .MuiInputBase-input': { color: '#272727' },
-                '& .MuiInputLabel-root': { color: '#8B0000' },
-              }}
-            />
-            <TextField
-              label="Número da Casa"
-              variant="filled"
-              value={newAddress.house_number}
-              onChange={(e) => handleAddressFieldChange('house_number', e.target.value)}
-              sx={{
-                mb: 2,
-                bgcolor: '#f0f0f0',
-                '& .MuiInputBase-input': { color: '#272727' },
-                '& .MuiInputLabel-root': { color: '#8B0000' },
-              }}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
-            <TextField
-              label="Complementos"
-              variant="filled"
-              value={newAddress.complements}
-              onChange={(e) => handleAddressFieldChange('complements', e.target.value)}
-              sx={{
-                mb: 2,
-                bgcolor: '#f0f0f0',
-                '& .MuiInputBase-input': { color: '#272727' },
-                '& .MuiInputLabel-root': { color: '#8B0000' },
-              }}
-              fullWidth
-            />
-            <TextField
-              label="Bairro"
-              variant="filled"
-              value={newAddress.neighborhood}
-              onChange={(e) => handleAddressFieldChange('neighborhood', e.target.value)}
-              sx={{
-                mb: 2,
-                bgcolor: '#f0f0f0',
-                '& .MuiInputBase-input': { color: '#272727' },
-                '& .MuiInputLabel-root': { color: '#8B0000' },
-              }}
-              fullWidth
-            />
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
-            <TextField
-              label="Cidade"
-              variant="filled"
-              value={newAddress.city}
-              onChange={(e) => handleAddressFieldChange('city', e.target.value)}
-              sx={{
-                width: '100%',
-                mb: 2,
-                bgcolor: '#f0f0f0',
-                '& .MuiInputBase-input': { color: '#272727' },
-                '& .MuiInputLabel-root': { color: '#8B0000' },
-              }}
-            />
-            <TextField
-              label="Estado"
-              variant="filled"
-              value={newAddress.state}
-              onChange={(e) => handleAddressFieldChange('state', e.target.value)}
-              sx={{
-                mb: 2,
-                bgcolor: '#f0f0f0',
-                '& .MuiInputBase-input': { color: '#272727' },
-                '& .MuiInputLabel-root': { color: '#8B0000' },
-              }}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              onClick={() => setAddressModalOpen(false)}
-              sx={{
-                backgroundColor: '#FFFFFF',
-                color: '#8B0000',
-                '&:hover': {
-                  backgroundColor: '#f0f0f0',
-                },
-                mr: '10px'
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSaveAddress}
-              sx={{
-                backgroundColor: '#C62828',
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: '#600000',
-                },
-              }}
-            >
-              Salvar
-            </Button>
-          </Box>
+          {/* <TextField
+            label="Email"
+            variant="filled"
+            value={editField.email}
+            onChange={(e) => handleEditFieldChange('email', e.target.value)}
+            sx={{ mb: 2, width: '100%' }}
+          /> */}
+          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+            Salvar
+          </Button>
         </Box>
       </Modal>
     </>

@@ -12,6 +12,9 @@ import Requests from './pages/Requests';
 import UpdateShowcase from './pages/UpdateShowcase.jsx';
 import ProfilePage from './pages/Profile.jsx';
 import History from './components/History.jsx'
+import Category from './pages/Category.jsx'
+import Cut from './pages/Cut.jsx'
+
 
 function App() {
   return (
@@ -26,6 +29,8 @@ function App() {
             <Route path="/lsu" element={<LoginSingUp />} />
             <Route path="/requests" element={<Requests />} />
             <Route path="/vitrine" element={<UpdateShowcase />} />
+            <Route path="/class" element={<Category />} />
+            <Route path="/cut" element={<Cut />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="/history/:id" element={<History />} />
 

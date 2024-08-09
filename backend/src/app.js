@@ -38,7 +38,7 @@ app.use('/orderItem', orderItemRouter);
 app.use('/order', orderRouter);
 app.use('/cuttingType', cuttingTypeRouter);
 app.use('/class', classRouter);
-app.use('/:id/customerAddress', customerAddressRouter);
+app.use('/address/:id', customerAddressRouter);
 app.use('/auth', authRouter);
 app.use('/protected', protectedResourceRouter);
 
