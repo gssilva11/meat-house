@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Toolbar, Button, Box, Typography, Divider, useMediaQuery, Modal, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { Link } from 'react-router-dom';
- 
+
 const modalStyle = {
   position: 'absolute',
   top: '50%',
@@ -30,7 +30,7 @@ const TopBar = () => {
           alignItems: 'center',
           gap: isMobile ? '5px' : '20px',
           justifyContent: isMobile ? 'center' : 'end',
-          height: '35px',
+          height: '30px',
           paddingRight: isMobile ? '5px' : '18px',
           backgroundColor: '#8B0000',
         }}
@@ -39,19 +39,19 @@ const TopBar = () => {
           Endereço
         </Button>
         {!isMobile && (
-          <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop:'9px' }} />
+          <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop: '7px' }} />
         )}
         <Button onClick={handleOpen('contato')} sx={{ color: '#fff', padding: '5px', minHeight: '14px' }}>
           Contato
         </Button>
         {!isMobile && (
-          <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop:'9px' }} />
+          <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop: '7px' }} />
         )}
         <Button onClick={handleOpen('sobreNos')} sx={{ color: '#fff', padding: '5px', minHeight: '14px' }}>
           Sobre Nós
         </Button>
         {!isMobile && (
-          <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop:'9px' }} />
+          <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop: '7px' }} />
         )}
         <Button sx={{ color: '#fff', padding: '5px', minHeight: '14px' }} component={Link} to="/lsu">
           Entre

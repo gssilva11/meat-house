@@ -19,6 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
+import ButtonsPageTable from '../components/ButtonsPageTable.jsx';
 
 const UpdateShowcase = () => {
   const [products, setProducts] = useState([]);
@@ -91,7 +92,10 @@ const UpdateShowcase = () => {
 
   const handleSaveEdit = async () => {
     try {
-      const updatedProduct = { ...editProduct, price: parseFloat(editProduct.price) };
+      const updatedProduct = {
+        ...editProduct,
+        price: Number(parseFloat(editProduct.price).toFixed(2))
+      };
       await myfetch.put(`product/${editProduct.id_product}`, updatedProduct);
       reloadProducts();
       setEditModalOpen(false);
@@ -100,7 +104,6 @@ const UpdateShowcase = () => {
     }
   };
 
-
   const handleCreateChange = (event) => {
     const { name, value } = event.target;
     setNewProduct({ ...newProduct, [name]: value });
@@ -108,7 +111,10 @@ const UpdateShowcase = () => {
 
   const handleCreateProduct = async () => {
     try {
-      const createdProduct = { ...newProduct, price: parseFloat(newProduct.price) };
+      const createdProduct = {
+        ...newProduct,
+        price: Number(parseFloat(newProduct.price).toFixed(2))
+      };
       const data = await myfetch.post('product', createdProduct);
       setProducts([...products, data]);
       setCreateModalOpen(false);
@@ -191,14 +197,14 @@ const UpdateShowcase = () => {
   return (
     <>
       <Navbar />
-      <div style={{ padding: '2rem', backgroundColor: '#f0f0f0', minHeight: '900px', color: '#272727', margin:'0 1%', borderRadius:'2px' }}>
+      <div style={{ padding: '2rem', backgroundColor: '#f0f0f0', minHeight: '900px', color: '#272727', margin: '0 1%', borderRadius: '2px' }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h4" align="left" gutterBottom>Vitrine de Produtos</Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'space-between' }}>
           <Box>
             <TextField
-              label="Nome"
+              label="Buscar por nome"
               variant="outlined"
               value={filterName}
               onChange={(e) => setFilterName(e.target.value)}
@@ -605,8 +611,6 @@ const UpdateShowcase = () => {
         </Box>
       </Modal>
 
-
-
       {/*MODAL DE CRIAÇÃO DE PRODUTO*/}
       <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
         <Box sx={{
@@ -825,6 +829,7 @@ const UpdateShowcase = () => {
           </Box>
         </Box>
       </Modal>
+      <ButtonsPageTable />
     </>
   );
 };

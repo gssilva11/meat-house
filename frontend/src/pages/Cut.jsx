@@ -7,19 +7,17 @@ import {
   Modal,
   Typography,
   TextField,
-  InputLabel,
-  FormControl,
-  MenuItem,
-  Select
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
+import ButtonsPageTable from '../components/ButtonsPageTable.jsx';
 
 const CuttingType = () => {
   const [cuttingTypes, setCuttingTypes] = useState([]);
+  const [filteredCuttingTypes, setFilteredCuttingTypes] = useState([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -31,12 +29,14 @@ const CuttingType = () => {
     cuttingType: ''
   });
   const [newCuttingType, setNewCuttingType] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCuttingTypes = async () => {
       try {
         const data = await myfetch.get('cuttingType');
         setCuttingTypes(data);
+        setFilteredCuttingTypes(data);
       } catch (error) {
         console.error(error);
       }
@@ -44,6 +44,13 @@ const CuttingType = () => {
 
     fetchCuttingTypes();
   }, []);
+
+  useEffect(() => {
+    const filtered = cuttingTypes.filter(ct =>
+      ct.cuttingType.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredCuttingTypes(filtered);
+  }, [searchTerm, cuttingTypes]);
 
   const reloadCuttingTypes = async () => {
     try {
@@ -59,32 +66,11 @@ const CuttingType = () => {
     setEditModalOpen(true);
   };
 
-  const handleEditChange = (event) => {
-    const { name, value } = event.target;
-    setEditCuttingType({ ...editCuttingType, [name]: value });
-  };
-
   const handleSaveEdit = async () => {
     try {
       await myfetch.put(`cuttingType/${editCuttingType.id_cuttingType}`, editCuttingType);
       reloadCuttingTypes();
       setEditModalOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleCreateChange = (event) => {
-    setNewCuttingType(event.target.value);
-  };
-
-  const handleCreateCuttingType = async () => {
-    try {
-      const createdCuttingType = { cuttingType: newCuttingType };
-      await myfetch.post('cuttingType', createdCuttingType);
-      setNewCuttingType('');
-      setCreateModalOpen(false);
-      reloadCuttingTypes();
     } catch (error) {
       console.error(error);
     }
@@ -108,6 +94,19 @@ const CuttingType = () => {
       }
     } else {
       setDeleteError(true);
+    }
+  };
+
+  const handleCreateChange = (e) => setNewCuttingType(e.target.value);
+
+  const handleCreateCuttingType = async () => {
+    try {
+      await myfetch.post('cuttingType', { cuttingType: newCuttingType });
+      reloadCuttingTypes();
+      setCreateModalOpen(false);
+      setNewCuttingType('');
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -141,6 +140,33 @@ const CuttingType = () => {
         </Box>
         <Box sx={{ display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'space-between' }}>
           <Box>
+            <TextField
+              label="Buscar por nome"
+              variant="outlined"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '4px',
+                '& .MuiInputBase-input': {
+                  color: '#020002',
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#020002',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#C62828',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#020002',
+                  },
+                },
+                mr: '15px'
+              }}
+            />
+          </Box>
+          <Box>
             <Button
               variant="contained"
               color="primary"
@@ -161,9 +187,10 @@ const CuttingType = () => {
             </Button>
           </Box>
         </Box>
+
         <Box sx={{ height: 600, width: '97%' }}>
           <DataGrid
-            rows={cuttingTypes}
+            rows={filteredCuttingTypes}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -184,36 +211,42 @@ const CuttingType = () => {
         </Box>
       </div>
 
-      {/*MODAL DE EDIÇÃO*/}
+      <ButtonsPageTable />
+
+      {/* MODAL DE EDIÇÃO */}
       <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
-        <Box
-          sx={{
-            padding: '2rem',
-            backgroundColor: '#fff',
-            margin: 'auto',
-            marginTop: '10%',
-            borderRadius: 1,
-            boxShadow: 24,
-            width: '400px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}
-        >
-          <IconButton onClick={() => setEditModalOpen(false)} sx={{ alignSelf: 'flex-start', marginBottom: '20px' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignSelf: 'center' }}>Editar Tipo de Corte</Typography>
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton onClick={() => setEditModalOpen(false)} sx={{ alignSelf: 'flex-start', position: 'absolute' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center', mb: '10px' }}>
+              Editar Tipo de Corte
+            </Typography>
+          </Box>
           <TextField
-            label="Tipo de Corte"
             name="cuttingType"
+            label="Tipo de Corte"
             variant="outlined"
             value={editCuttingType.cuttingType}
-            onChange={handleEditChange}
+            onChange={(e) => setEditCuttingType({ ...editCuttingType, cuttingType: e.target.value })}
+            fullWidth
             sx={{
-              backgroundColor: '#F8F8F8',
+              backgroundColor: '#FFFFFF',
               borderRadius: '4px',
-              width: '100%',
               '& .MuiInputBase-input': {
                 color: '#020002',
               },
@@ -262,7 +295,7 @@ const CuttingType = () => {
         </Box>
       </Modal>
 
-      {/*MODAL DE EXCLUSÃO*/}
+      {/* MODAL DE EXCLUSÃO */}
       <Modal open={deleteModalOpen} onClose={() => {
         setDeleteModalOpen(false);
         setDeleteInput('');
@@ -282,14 +315,14 @@ const CuttingType = () => {
             alignItems: 'center'
           }}
         >
-                    <IconButton onClick={() => {
+          <IconButton onClick={() => {
             setDeleteModalOpen(false);
             setDeleteInput('');
             setDeleteError(false);
           }} sx={{ alignSelf: 'flex-start' }}>
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" gutterBottom sx={{ alignSelf: 'center', color: '#cc0000' }}>ATENÇÃO!</Typography>
+          <Typography variant="h6" gutterBottom sx={{ alignSelf: 'center', position: 'absolute', color: '#cc0000' }}>ATENÇÃO!</Typography>
           <Typography variant="h6" gutterBottom sx={{ alignSelf: 'flex-start' }}>
             Confirmação de Exclusão:
             <Box component="span" sx={{ color: '#8B0000', ml: '5px' }}>
@@ -367,7 +400,7 @@ const CuttingType = () => {
         </Box>
       </Modal>
 
-      {/*MODAL DE CRIAÇÃO*/}
+      {/* MODAL DE CRIAÇÃO */}
       <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
         <Box sx={{
           position: 'absolute',
@@ -453,4 +486,3 @@ const CuttingType = () => {
 };
 
 export default CuttingType;
-

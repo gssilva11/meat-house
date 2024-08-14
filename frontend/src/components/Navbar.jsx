@@ -241,7 +241,7 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
               </ListItemIcon>
               <ListItemText primary="Pedidos recebidos" />
             </ListItem>
-            <ListItem button component={Link} to="/profile/11" onClick={handleDrawerToggle}>
+            <ListItem button component={Link} to="/profile/10" onClick={handleDrawerToggle}>
               <ListItemIcon>
                 <LoginIcon />
               </ListItemIcon>

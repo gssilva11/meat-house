@@ -8,26 +8,21 @@ import {
   Typography,
   TextField,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
+import ButtonsPageTable from '../components/ButtonsPageTable.jsx';
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [deleteInput, setDeleteInput] = useState('');
   const [deleteError, setDeleteError] = useState(false);
-  const [editCategory, setEditCategory] = useState({
-    class: ''
-  });
-  const [newCategory, setNewCategory] = useState({
-    class: ''
-  });
+  const [newCategory, setNewCategory] = useState({ class: '' });
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -38,7 +33,6 @@ const Category = () => {
         console.error(error);
       }
     };
-
     fetchCategories();
   }, []);
 
@@ -46,31 +40,6 @@ const Category = () => {
     try {
       const data = await myfetch.get('class');
       setCategories(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleEditClick = async (category) => {
-    try {
-      const data = await myfetch.get(`class/${category.class}`);
-      setEditCategory(data);
-      setEditModalOpen(true);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleEditChange = (event) => {
-    const { name, value } = event.target;
-    setEditCategory({ ...editCategory, [name]: value });
-  };
-
-  const handleSaveEdit = async () => {
-    try {
-      await myfetch.put(`class/${editCategory.class}`, editCategory);
-      reloadCategories();
-      setEditModalOpen(false);
     } catch (error) {
       console.error(error);
     }
@@ -86,9 +55,7 @@ const Category = () => {
       const data = await myfetch.post('class', newCategory);
       setCategories([...categories, data]);
       setCreateModalOpen(false);
-      setNewCategory({
-        class: ''
-      });
+      setNewCategory({ class: '' });
       reloadCategories();
     } catch (error) {
       console.error(error);
@@ -116,8 +83,12 @@ const Category = () => {
     }
   };
 
+  const filteredCategories = categories.filter((category) =>
+    category.class.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const columns = [
-    { field: 'class', headerName: 'Class', flex: 1 },
+    { field: 'class', headerName: 'Categoria', flex: 1 },
     {
       field: 'actions',
       headerName: 'Ações',
@@ -126,9 +97,6 @@ const Category = () => {
       headerAlign: 'center',
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => handleEditClick(params.row)} sx={{ marginRight: '15px' }}>
-            <EditIcon />
-          </IconButton>
           <IconButton onClick={() => handleDeleteClick(params.row)}>
             <DeleteIcon />
           </IconButton>
@@ -145,6 +113,33 @@ const Category = () => {
           <Typography variant="h4" align="left" gutterBottom>Categorias</Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'space-between' }}>
+          <Box>
+            <TextField
+              label="Buscar por nome"
+              variant="outlined"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '4px',
+                '& .MuiInputBase-input': {
+                  color: '#020002',
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#020002',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#C62828',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#020002',
+                  },
+                },
+                mr: '15px'
+              }}
+            />
+          </Box>
           <Box>
             <Button
               variant="contained"
@@ -166,9 +161,10 @@ const Category = () => {
             </Button>
           </Box>
         </Box>
+
         <Box sx={{ height: 600, width: '97%' }}>
           <DataGrid
-            rows={categories}
+            rows={filteredCategories}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -192,8 +188,8 @@ const Category = () => {
         </Box>
       </div>
 
-      {/* MODAL DE EDIÇÃO */}
-      <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+      {/* MODAL DE CRIAÇÃO */}
+      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
         <Box
           sx={{
             padding: '2rem',
@@ -208,18 +204,17 @@ const Category = () => {
             alignItems: 'center'
           }}
         >
-          <IconButton onClick={() => setEditModalOpen(false)} sx={{ alignSelf: 'flex-start', marginBottom: '20px' }}>
+          <IconButton onClick={() => setCreateModalOpen(false)} sx={{ alignSelf: 'flex-start', marginBottom: '20px' }}>
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignSelf: 'center', position: 'absolute' }}>Editar Categoria</Typography>
-          <Typography variant="body1" gutterBottom sx={{ alignSelf: 'flex-end', position: 'absolute' }}>Class: {editCategory.class}</Typography>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignSelf: 'center', position: 'absolute' }}>Criar Nova Categoria</Typography>
           <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <TextField
               label="Class"
               name="class"
               variant="outlined"
-              value={editCategory.class}
-              onChange={handleEditChange}
+              value={newCategory.class}
+              onChange={handleCreateChange}
               sx={{
                 backgroundColor: '#F8F8F8',
                 borderRadius: '4px',
@@ -244,7 +239,7 @@ const Category = () => {
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', mt: 2 }}>
             <Button
               variant="contained"
-              onClick={() => setEditModalOpen(false)}
+              onClick={() => setCreateModalOpen(false)}
               sx={{
                 backgroundColor: '#FFFFFF',
                 color: '#8B0000',
@@ -258,7 +253,7 @@ const Category = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleSaveEdit}
+              onClick={handleCreateCategory}
               sx={{
                 backgroundColor: '#C62828',
                 color: '#FFFFFF',
@@ -267,7 +262,7 @@ const Category = () => {
                 },
               }}
             >
-              Salvar
+              Criar
             </Button>
           </Box>
         </Box>
@@ -290,37 +285,60 @@ const Category = () => {
             width: '36%',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'center'
           }}
         >
-          <Typography variant="h6" gutterBottom>Excluir Categoria</Typography>
-          <Typography variant="body1" gutterBottom>Digite "EXCLUIR" para confirmar.</Typography>
+          <IconButton onClick={() => {
+            setDeleteModalOpen(false);
+            setDeleteInput('');
+            setDeleteError(false);
+          }} sx={{ alignSelf: 'flex-start' }}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h6" gutterBottom sx={{ alignSelf: 'center', position: 'absolute', color: '#cc0000' }}>
+            ATENÇÃO!
+          </Typography>
+          <Typography variant="h6" gutterBottom sx={{ alignSelf: 'flex-start' }}>
+            Confirmação de Exclusão:
+            <Box component="span" sx={{ color: '#8B0000', ml: '5px' }}>
+              "{categoryToDelete?.class}"
+            </Box>
+          </Typography>
+          <Typography variant="body1" gutterBottom sx={{ alignSelf: 'flex-start' }}>
+            Para confirmar a exclusão, digite "EXCLUIR" no campo abaixo.
+          </Typography>
           <TextField
-            value={deleteInput}
-            onChange={(e) => setDeleteInput(e.target.value)}
-            error={deleteError}
-            helperText={deleteError ? 'Digite "EXCLUIR" corretamente para excluir.' : ''}
             fullWidth
+            value={deleteInput}
+            onChange={(e) => setDeleteInput(e.target.value.toUpperCase())}
             sx={{
+              backgroundColor: '#FFFFFF',
+              color: '#840404',
               marginBottom: '1rem',
-              backgroundColor: '#F8F8F8',
-              borderRadius: '4px',
               '& .MuiInputBase-input': {
-                color: '#020002',
+                color: '#840404',
+                textAlign: 'center',
+                fontSize: 'large'
               },
               '& .MuiOutlinedInput-root': {
                 '& fieldset': {
                   borderColor: '#020002',
                 },
                 '&:hover fieldset': {
-                  borderColor: 'red',
+                  borderColor: '#C62828',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: 'black',
+                  borderColor: '#020002',
                 },
               },
+              width: '150px',
             }}
           />
+          {deleteError && (
+            <Typography color="error" gutterBottom>
+              Texto incorreto. Digite "EXCLUIR" para confirmar.
+            </Typography>
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', mt: 2 }}>
             <Button
               variant="contained"
@@ -351,87 +369,12 @@ const Category = () => {
                 },
               }}
             >
-              Excluir
+              EXCLUIR
             </Button>
           </Box>
         </Box>
       </Modal>
-
-      {/* MODAL DE CRIAÇÃO */}
-      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
-        <Box
-          sx={{
-            padding: '2rem',
-            backgroundColor: '#fff',
-            margin: 'auto',
-            marginTop: '10%',
-            borderRadius: 1,
-            boxShadow: 24,
-            width: '36%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="h6" gutterBottom>Adicionar Categoria</Typography>
-          <TextField
-            label="Class"
-            name="class"
-            variant="outlined"
-            value={newCategory.class}
-            onChange={handleCreateChange}
-            fullWidth
-            sx={{
-              marginBottom: '1rem',
-              backgroundColor: '#F8F8F8',
-              borderRadius: '4px',
-              '& .MuiInputBase-input': {
-                color: '#020002',
-              },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: '#020002',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'red',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'black',
-                },
-              },
-            }}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', mt: 2 }}>
-            <Button
-              variant="contained"
-              onClick={() => setCreateModalOpen(false)}
-              sx={{
-                backgroundColor: '#FFFFFF',
-                color: '#8B0000',
-                '&:hover': {
-                  backgroundColor: '#f0f0f0',
-                },
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleCreateCategory}
-              sx={{
-                backgroundColor: '#C62828',
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: '#600000',
-                },
-              }}
-            >
-              Adicionar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+      <ButtonsPageTable />
     </>
   );
 };

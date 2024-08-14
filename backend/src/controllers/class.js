@@ -4,48 +4,50 @@ import { ZodError } from 'zod';
 
 const controller = {};
 
+// Create a new class entry
 controller.create = async function(req, res) {
   try {
-    Class.parse(req.body);
-
+    Class.parse(req.body);  // Validate the request body with Zod
+    
     await prisma.class.create({ data: req.body });
     
     res.status(201).end();
   } catch (error) {
     console.error(error);
 
-    // Retorna HTTP 422: Unprocessable Entity
-    if (error instanceof ZodError) res.status(422).send(error.issues);
-    
-    // HTTP 500: Internal Server Error
-    else res.status(500).send(error);
+    // Return HTTP 422: Unprocessable Entity if there's a Zod validation error
+    if (error instanceof ZodError) {
+      res.status(422).send(error.issues);
+    } else {
+      // Return HTTP 500: Internal Server Error for other errors
+      res.status(500).send(error);
+    }
   }
 };
 
+// Retrieve all class entries
 controller.retrieveAll = async function(req, res) {
   try {
     const result = await prisma.class.findMany({
       orderBy: [
-        { class: 'asc' }
+        { class: 'asc' }  // Updated to use the correct field
       ]
     });
     res.send(result);
   } catch (error) {
     console.error(error);
-    // HTTP 500: Internal Server Error
     res.status(500).send(error);
   }
 };
 
+// Retrieve a single class entry by ID
 controller.retrieveOne = async function(req, res) {
   try {
     const result = await prisma.class.findUnique({
-      where: { class: Number(req.params.id) }
+      where: { class: req.params.id }  // Updated to use the correct field
     });
 
-    // Encontrou: retorna HTTP 200: OK
     if (result) res.send(result);
-    // Não encontrou: retorna HTTP 404: Not found
     else res.status(404).end();
   } catch (error) {
     console.error(error);
@@ -53,12 +55,13 @@ controller.retrieveOne = async function(req, res) {
   }
 };
 
+// Update a class entry by ID
 controller.update = async function(req, res) {
   try {
-    Class.parse(req.body);
+    Class.parse(req.body);  // Validate the request body with Zod
 
     const result = await prisma.class.update({
-      where: { class: Number(req.params.id) },
+      where: { class: req.params.id },  // Updated to use the correct field
       data: req.body
     });
 
@@ -67,15 +70,19 @@ controller.update = async function(req, res) {
   } catch (error) {
     console.error(error);
     
-    if (error instanceof ZodError) res.status(422).send(error.issues);
-    else res.status(500).send(error);
+    if (error instanceof ZodError) {
+      res.status(422).send(error.issues);
+    } else {
+      res.status(500).send(error);
+    }
   }
 };
 
+// Delete a class entry by ID
 controller.delete = async function(req, res) {
   try {
-    const result = await prisma.cuttingType.delete({
-      where: { class: Number(req.params.id) }
+    const result = await prisma.class.delete({
+      where: { class: req.params.id }  // Updated to use the correct field
     });
     
     if (result) res.status(204).end();

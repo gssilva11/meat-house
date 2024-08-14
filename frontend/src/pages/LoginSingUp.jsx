@@ -53,28 +53,28 @@ const LoginCadastro = () => {
   const handleSubmit = async () => {
     if (isLogin) {
       // Lógica de login
-      try {
-        const response = await myfetch.post('login', {
-          email: formData.loginEmail,
-          password: formData.loginSenha,
-        });
+    //   try {
+    //     const response = await myfetch.post('login', {
+    //       email: formData.loginEmail,
+    //       password: formData.loginSenha,
+    //     });
 
-        if (response) {
-          notifySuccess('Login realizado com sucesso!');
-          setFormData({
-            ...formData,
-            loginEmail: '',
-            loginSenha: '',
-          });
-          // Redirecionar ou tratar o sucesso do login aqui
-        } else {
-          notifyError('Erro ao fazer login');
-        }
-      } catch (e) {
-        console.error('Erro ao fazer login:', e);
-        notifyError('Erro ao fazer login. Por favor, tente novamente.');
-      }
-    } else {
+    //     if (response) {
+    //       notifySuccess('Login realizado com sucesso!');
+    //       setFormData({
+    //         ...formData,
+    //         loginEmail: '',
+    //         loginSenha: '',
+    //       });
+    //       // Redirecionar ou tratar o sucesso do login aqui
+    //     } else {
+    //       notifyError('Erro ao fazer login');
+    //     }
+    //   } catch (e) {
+    //     console.error('Erro ao fazer login:', e);
+    //     notifyError('Erro ao fazer login. Por favor, tente novamente.');
+    //   }
+    // } else {
       // Lógica de cadastro
       if (!formData.birth_date) {
         notifyError('Data de nascimento é obrigatória');

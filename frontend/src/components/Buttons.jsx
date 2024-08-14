@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button, Box, Tooltip, Typography } from '@mui/material';
-import { GiCow, GiPig, GiChicken } from 'react-icons/gi'; // Importando apenas os ícones necessários do react-icons
+import { GiCow, GiPig, GiChicken } from 'react-icons/gi';
 import VanillaTilt from 'vanilla-tilt';
 
 const Buttons = ({ onExpandCategory }) => {

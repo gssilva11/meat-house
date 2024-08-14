@@ -29,6 +29,8 @@ function App() {
             <Route path="/lsu" element={<LoginSingUp />} />
             <Route path="/requests" element={<Requests />} />
             <Route path="/vitrine" element={<UpdateShowcase />} />
+            <Route path="/cut" element={<Cut />} />
+            <Route path="/category" element={<Category />} />
             <Route path="/class" element={<Category />} />
             <Route path="/cut" element={<Cut />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
