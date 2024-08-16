@@ -20,6 +20,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
 import ButtonsPageTable from '../components/ButtonsPageTable.jsx';
+import InputMask from 'react-input-mask';
 
 const UpdateShowcase = () => {
   const [products, setProducts] = useState([]);
@@ -508,7 +509,6 @@ const UpdateShowcase = () => {
       </Modal>
 
       {/*MODAL DE EXCLUSÃO*/}
-
       <Modal open={deleteModalOpen} onClose={() => {
         setDeleteModalOpen(false);
         setDeleteInput('');
@@ -611,8 +611,14 @@ const UpdateShowcase = () => {
         </Box>
       </Modal>
 
-      {/*MODAL DE CRIAÇÃO DE PRODUTO*/}
-      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
+      {/* MODAL DE CRIAÇÃO DE PRODUTO */}
+      <Modal
+        open={createModalOpen}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setNewProduct({ ...newProduct, imageProduct: '' });
+        }}
+      >
         <Box sx={{
           position: 'absolute',
           top: '50%',
@@ -630,7 +636,7 @@ const UpdateShowcase = () => {
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton onClick={() => {
               setCreateModalOpen(false);
-              setCreateInput('');
+              setNewProduct({ ...newProduct, imageProduct: '' }); // Limpa o arquivo selecionado ao fechar a modal
             }} sx={{ alignSelf: 'flex-start', position: 'absolute' }}>
               <ArrowBackIcon />
             </IconButton>
@@ -703,6 +709,7 @@ const UpdateShowcase = () => {
               onChange={handleCreateChange}
               fullWidth
               sx={{
+                width: '290px',
                 backgroundColor: '#FFFFFF',
                 borderRadius: '4px',
                 '& .MuiInputBase-input': {
@@ -721,32 +728,63 @@ const UpdateShowcase = () => {
                 },
               }}
             />
-            <TextField
-              name="imageProduct"
-              label="URL da Imagem"
-              variant="outlined"
-              value={newProduct.imageProduct}
-              onChange={handleCreateChange}
-              fullWidth
+            <Box
               sx={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '4px',
-                '& .MuiInputBase-input': {
-                  color: '#020002',
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#020002',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'red',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'black',
-                  },
-                },
+                display: 'flex',
+                alignItems: 'center',
+                height: '56px',
+                width: '290px',
               }}
-            />
+            >
+              <Button
+                variant="contained"
+                component="label"
+                sx={{
+                  fontSize: '12px',
+                  backgroundColor: '#C62828',
+                  color: '#FFF',
+                  borderRadius: '4px',
+                  marginRight: '8px',
+                  height: '56px',
+                  width: '80px'
+                }}
+              >
+                Escolher Imagem
+                <input
+                  type="file"
+                  accept="image/*" // Aceita apenas arquivos de imagem
+                  hidden
+                  onChange={(e) => {
+                    const fileName = e.target.files[0]?.name || '';
+                    handleCreateChange({
+                      target: {
+                        name: 'imageProduct',
+                        value: `src/assets/product/${fileName}`,
+                      },
+                    });
+                  }}
+                />
+              </Button>
+              <Typography
+                variant="body1"
+                sx={{
+                  border: '1px solid #020002',
+                  fontSize: '15px',
+                  borderRadius: '3px',
+                  padding: '1px 5px',
+                  backgroundColor: '#FDFDFD',
+                  color: '#0F0F0F',
+                  whiteSpace: 'normal',
+                  wordWrap: 'break-word',
+                  overflow: 'hidden',
+                  flexGrow: 1,
+                  height: '56px',
+                  width: '100px',
+                }}
+              >
+                {newProduct.imageProduct.replace('src/assets/product/', '') || 'Nenhum arquivo selecionado'}
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: '1rem' }}>
             <FormControl
@@ -798,6 +836,8 @@ const UpdateShowcase = () => {
               sx={{ flexGrow: 1 }}
             />
           </Box>
+
+          {/* Botões de ação */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', mt: 2 }}>
             <Button
               variant="contained"
@@ -829,6 +869,8 @@ const UpdateShowcase = () => {
           </Box>
         </Box>
       </Modal>
+
+
       <ButtonsPageTable />
     </>
   );
