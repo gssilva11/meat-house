@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Order" ALTER COLUMN "datetime_order" SET DEFAULT CURRENT_TIMESTAMP;

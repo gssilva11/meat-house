@@ -31,7 +31,7 @@ import myfetch from '../utils/myfetch';
 import VanillaTilt from 'vanilla-tilt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ProductModal from './ProductModal';
-import Cart from './Cart.jsx'
+import CartModal from './CartModal'; // Importe o componente CartModal
 
 const Tilt = ({ children }) => {
   const tiltRef = useRef();
@@ -59,22 +59,22 @@ const Tilt = ({ children }) => {
 
 const Navbar = ({ cartItemCount, setCartItems }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false); // Estado para controlar o modal do carrinho
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const isMobile = useMediaQuery('(max-width:600px)');
-  const inputRef = useRef(null); // Ref to access the input element
-  const resultsRef = useRef(null); // Ref to access the search results list
+  const inputRef = useRef(null);
+  const resultsRef = useRef(null);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
   };
 
   const handleCartToggle = () => {
-    setCartOpen(!cartOpen);
+    setCartOpen(!cartOpen); // Alterna o estado do carrinho
   };
 
   const handleSearchChange = async (event) => {
@@ -85,28 +85,28 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
       try {
         const results = await myfetch.search('product/search', value);
         setSearchResults(results);
-        setShowSearchResults(true); // Show the search results when there are results
+        setShowSearchResults(true);
       } catch (error) {
         console.error(error);
       }
     } else {
       setSearchResults([]);
-      setShowSearchResults(false); // Hide the search results if no input
+      setShowSearchResults(false);
     }
   };
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
-    setSearchResults([]); // Clear the search results
-    setShowSearchResults(false); // Hide the search results
+    setSearchResults([]);
+    setShowSearchResults(false);
     setModalOpen(true);
-    setSearchTerm(''); // Clear the input field
+    setSearchTerm('');
   };
 
   const handleSearchResultSelect = (product) => {
     setSelectedProduct(product);
-    setSearchResults([]); // Clear the search results
-    setShowSearchResults(false); // Hide the search results
+    setSearchResults([]);
+    setShowSearchResults(false);
     setModalOpen(true);
   };
 
@@ -121,7 +121,6 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
   };
 
   const handleBlur = () => {
-    // Set a timeout to allow click events to register before hiding the results
     setTimeout(() => {
       setShowSearchResults(false);
     }, 200);
@@ -163,9 +162,9 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
                   inputProps={{ 'aria-label': 'search' }}
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  onBlur={handleBlur} // Clear the input field and hide the search results when it loses focus
-                  onFocus={handleFocus} // Show the search results when the input is focused
-                  ref={inputRef} // Attach the ref
+                  onBlur={handleBlur}
+                  onFocus={handleFocus}
+                  ref={inputRef}
                   sx={{
                     color: 'white',
                     marginRight: '10px',
@@ -180,8 +179,8 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
                 </IconButton>
               </form>
             )}
-            <IconButton aria-label="cart" sx={{ color: '#8B0000', marginLeft: '20px' }} onClick={() => {<Cart/>}}>
-              <Badge badgeContent={cartItemCount} color="error"> 
+            <IconButton aria-label="cart" sx={{ color: '#8B0000', marginLeft: '20px' }} onClick={handleCartToggle}>
+              <Badge badgeContent={cartItemCount} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
@@ -223,7 +222,7 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItem>
-            <ListItem button component={Link} to="/lsu" onClick={handleDrawerToggle}>
+            <ListItem button component={Link} to="/login" onClick={handleDrawerToggle}>
               <ListItemIcon>
                 <LoginIcon />
               </ListItemIcon>
@@ -241,18 +240,12 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
               </ListItemIcon>
               <ListItemText primary="Pedidos recebidos" />
             </ListItem>
-            <ListItem button component={Link} to="/profile/10" onClick={handleDrawerToggle}>
+            <ListItem button component={Link} to="/profile/1" onClick={handleDrawerToggle}>
               <ListItemIcon>
                 <LoginIcon />
               </ListItemIcon>
               <ListItemText primary="Perfil" />
             </ListItem>
-            {/* <ListItem button component={Link} to="/requests" onClick={handleDrawerToggle}>
-              <ListItemIcon>
-                <LoginIcon />
-              </ListItemIcon>
-              <ListItemText primary="Pedidos recebidos" />
-            </ListItem> */}
           </List>
         </Box>
       </Drawer>
@@ -332,6 +325,12 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
           onClose={handleCloseModal}
           product={selectedProduct}
           onAddToCart={addToCart}
+        />
+      )}
+      {cartOpen && (
+        <CartModal // Renderiza o CartModal quando cartOpen for true
+          open={cartOpen}
+          onClose={handleCartToggle}
         />
       )}
     </>

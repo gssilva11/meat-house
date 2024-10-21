@@ -6,9 +6,6 @@ import {
   Button,
   IconButton,
   List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   useMediaQuery,
   useTheme,
   Card,
@@ -33,10 +30,10 @@ const AddressModal = ({ open, onClose }) => {
     if (open) {
       const fetchAddresses = async () => {
         try {
-          const addressData = await myfetch.get('customerAddress');
+          const addressData = await myfetch.get('/customerAddress'); // Corrigida a rota para '/customerAddress'
           setAddresses(addressData);
         } catch (error) {
-          console.error(error);
+          console.error('Erro ao buscar endereços:', error);
         }
       };
 
@@ -46,10 +43,17 @@ const AddressModal = ({ open, onClose }) => {
 
   const handleEdit = (id) => {
     // Função para editar o endereço
+    console.log('Editar endereço:', id);
   };
 
-  const handleDelete = (id) => {
-    // Função para apagar o endereço
+  const handleDelete = async (id) => {
+    try {
+      await myfetch.delete(`/address/${id}`); // Corrigida a rota de exclusão
+      setAddresses(addresses.filter((address) => address.id_address !== id));
+      console.log('Endereço excluído:', id);
+    } catch (error) {
+      console.error('Erro ao excluir endereço:', error);
+    }
   };
 
   const handleNewAddress = () => {
@@ -70,6 +74,7 @@ const AddressModal = ({ open, onClose }) => {
             border: '2px solid #C62828',
             boxShadow: 24,
             p: 4,
+            borderRadius: 1
           }}
         >
           <IconButton onClick={onClose} sx={{ position: 'absolute', top: 16, left: 16 }}>
@@ -82,13 +87,21 @@ const AddressModal = ({ open, onClose }) => {
             {addresses.map((address) => (
               <Card key={address.id_address} sx={{ mb: 2 }}>
                 <CardContent>
-                  <Typography variant="body1">{address.street_name}</Typography>
+                  <Typography variant="body1">{`${address.street_name}, ${address.house_number}`}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {`${address.city}, ${address.state}`}
+                    {`${address.neighborhood}, ${address.city} - ${address.state}`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {address.complements}
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(address.id_address)} sx={{ mr: 1 }}>
+                  <IconButton
+                    edge="end"
+                    aria-label="edit"
+                    onClick={() => handleEdit(address.id_address)}
+                    sx={{ mr: 1 }}
+                  >
                     <EditIcon />
                   </IconButton>
                   <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(address.id_address)}>
@@ -110,7 +123,10 @@ const AddressModal = ({ open, onClose }) => {
         </Box>
       </Modal>
 
-      <NewAddressModal open={isNewAddressModalOpen} onClose={() => setNewAddressModalOpen(false)} />
+      <NewAddressModal
+        open={isNewAddressModalOpen}
+        onClose={() => setNewAddressModalOpen(false)}
+      />
     </>
   );
 };

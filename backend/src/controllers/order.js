@@ -4,45 +4,90 @@ import { ZodError } from 'zod';
 
 const controller = {};
 
+// Finalizar pedido
 controller.create = async function (req, res) {
   try {
-    Order.parse(req.body);
+    Order.parse(req.body); // Valida o corpo da requisição com Zod
 
-    await prisma.order.create({ data: req.body });
+    // Criar a ordem com total inicial 0 e horário atual
+    const order = await prisma.order.create({
+      data: {
+        id_user: req.body.id_user,
+        id_address: req.body.id_address,
+        datetime_order: new Date(), // Pega o horário atual automaticamente
+        status: 'AWAITING', // Define o status como Aguardando
+        total: 0, // Inicialmente total 0
+      },
+    });
 
-    res.status(201).end();
+    let totalOrder = 0;
+
+    // Iterar sobre os itens do pedido (recebidos via req.body.orderItems)
+    for (const item of req.body.orderItems) {
+      // Criar os itens de pedido e associá-los à ordem
+      const orderItem = await prisma.orderItem.create({
+        data: {
+          id_order: order.id_order,
+          id_product: item.id_product,
+          cuttingType: item.cuttingType,
+          quantity: item.quantity,
+          priceOnTheDay: item.priceOnTheDay,
+          description: item.description || '-',
+        },
+      });
+
+      // Calcular o total com base nos itens de pedido
+      totalOrder += item.priceOnTheDay * item.quantity;
+    }
+
+    // Atualizar o total da ordem
+    await prisma.order.update({
+      where: { id_order: order.id_order },
+      data: { total: totalOrder },
+    });
+
+    res.status(201).json({ message: 'Pedido finalizado com sucesso!', order });
+
   } catch (error) {
     console.error(error);
 
-    // Retorna HTTP 422: Unprocessable Entity
-    if (error instanceof ZodError) res.status(422).send(error.issues);
-    // HTTP 500: Internal Server Error
-    else res.status(500).send(error);
+    if (error instanceof ZodError) {
+      res.status(422).send(error.issues); // Validação Zod falhou
+    } else {
+      res.status(500).send(error); // Erro interno do servidor
+    }
   }
 };
 
+// Buscar todas as ordens
 controller.retrieveAll = async function (req, res) {
   try {
     const result = await prisma.order.findMany({
-      orderBy: [{ date_order: 'asc' }],
+      orderBy: [{ datetime_order: 'asc' }],
     });
     res.send(result);
   } catch (error) {
     console.error(error);
-    // HTTP 500: Internal Server Error
     res.status(500).send(error);
   }
 };
 
+// Buscar ordem específica por ID
 controller.retrieveOne = async function (req, res) {
   try {
     const result = await prisma.order.findUnique({
       where: { id_order: Number(req.params.id) },
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+            cuttingType: true,
+          },
+        },
+      },
     });
 
-    // Encontrou: retorna HTTP 200: OK
     if (result) res.send(result);
-    // Não encontrou: retorna HTTP 404: Not found
     else res.status(404).end();
   } catch (error) {
     console.error(error);
@@ -50,6 +95,7 @@ controller.retrieveOne = async function (req, res) {
   }
 };
 
+// Atualizar uma ordem
 controller.update = async function (req, res) {
   try {
     Order.parse(req.body);
@@ -69,6 +115,7 @@ controller.update = async function (req, res) {
   }
 };
 
+// Deletar uma ordem
 controller.delete = async function (req, res) {
   try {
     const result = await prisma.order.delete({
@@ -83,13 +130,14 @@ controller.delete = async function (req, res) {
   }
 };
 
+// Buscar ordens por ID do usuário e status (excluindo um status específico)
 controller.retrieveByUserIdAndStatus = async function (req, res) {
   const { userId, status_ne } = req.query;
   try {
     const orders = await prisma.order.findMany({
       where: {
-        id_customer: Number(userId),
-        NOT: { status: status_ne },
+        id_user: Number(userId),
+        NOT: { status: status_ne }, // Excluir status especificado
       },
       include: {
         orderItems: {
@@ -99,7 +147,7 @@ controller.retrieveByUserIdAndStatus = async function (req, res) {
           },
         },
       },
-      orderBy: { date_order: 'desc' },
+      orderBy: { datetime_order: 'desc' },
     });
 
     res.json(orders);

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+// src/components/TopBar.jsx
+
+import React, { useState, useEffect } from 'react';
 import { Toolbar, Button, Box, Typography, Divider, useMediaQuery, Modal, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const modalStyle = {
   position: 'absolute',
@@ -18,12 +20,42 @@ const modalStyle = {
 const TopBar = () => {
   const isMobile = useMediaQuery('(max-width:600px)');
   const [openModal, setOpenModal] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const handleOpen = (modal) => () => setOpenModal(modal);
   const handleClose = () => setOpenModal(null);
 
+  useEffect(() => {
+    // Recupera os dados do usuário do localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    // Adiciona um listener para alterações no localStorage (ex. logout)
+    const handleStorageChange = () => {
+      const updatedUser = localStorage.getItem('user');
+      if (updatedUser) {
+        setUser(JSON.parse(updatedUser));
+      } else {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const handleUserClick = () => {
+    navigate(`/profile/${user.id}`);
+  };
+
   return (
-    <div sx={{ flexWrap: 'wrap' }}>
+    <Box>
       <Box
         sx={{
           display: 'flex',
@@ -53,11 +85,21 @@ const TopBar = () => {
         {!isMobile && (
           <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#fff', height: '15px', marginTop: '7px' }} />
         )}
-        <Button sx={{ color: '#fff', padding: '5px', minHeight: '14px' }} component={Link} to="/lsu">
-          Entre
-        </Button>
+        {user ? (
+          <Button
+            onClick={handleUserClick}
+            sx={{ color: '#fff', padding: '5px', minHeight: '14px', textTransform: 'none' }}
+          >
+            {user.firstName} {user.lastName}
+          </Button>
+        ) : (
+          <Button sx={{ color: '#fff', padding: '5px', minHeight: '14px' }} component={Link} to="/login">
+            Entre
+          </Button>
+        )}
       </Box>
 
+      {/* Modal de "Endereço" */}
       <Modal open={openModal === 'endereco'} onClose={handleClose}>
         <Box sx={modalStyle}>
           <IconButton
@@ -75,6 +117,7 @@ const TopBar = () => {
         </Box>
       </Modal>
 
+      {/* Modal de "Contato" */}
       <Modal open={openModal === 'contato'} onClose={handleClose}>
         <Box sx={modalStyle}>
           <IconButton
@@ -93,6 +136,7 @@ const TopBar = () => {
         </Box>
       </Modal>
 
+      {/* Modal de "Sobre Nós" */}
       <Modal open={openModal === 'sobreNos'} onClose={handleClose}>
         <Box sx={modalStyle}>
           <IconButton
@@ -109,7 +153,7 @@ const TopBar = () => {
           </Typography>
         </Box>
       </Modal>
-    </div>
+    </Box>
   );
 };
 

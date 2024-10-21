@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import myfetch from '../utils/myfetch';
-import { Box, Typography, List, ListItem, ListItemText, Modal, Divider, IconButton, Button } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, Modal, Divider, IconButton, Button, CircularProgress } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -41,8 +41,8 @@ const History = () => {
   const handleAddToCart = async (item) => {
     try {
       const response = await myfetch.post('orderItem', {
-        id_order: item.id_order,
-        quantity: item.quantity, // Certifique-se de que este campo está presente e é um número válido
+        id_order: selectedOrder.id_order,
+        quantity: item.quantity,
         id_product: item.id_product,
         id_cuttingType: item.id_cuttingType,
         thickness: item.thickness,
@@ -58,7 +58,7 @@ const History = () => {
     }
   };
 
-  if (loading) return <Typography>Loading...</Typography>;
+  if (loading) return <CircularProgress />;
   if (error) return <Typography>Error: {error}</Typography>;
 
   const translateThickness = (thickness) => {
@@ -137,27 +137,14 @@ const History = () => {
                       <Typography variant="body2">
                         Valor: R${(item.priceOnTheDay).toFixed(2)}
                       </Typography>
+                      <Button variant="contained" color="primary" onClick={() => handleAddToCart(item)} sx={{ ml: 2 }}>
+                        Adicionar ao Carrinho
+                      </Button>
                     </ListItem>
                     <Divider />
                   </React.Fragment>
                 ))}
               </List>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, position: 'absolute', bottom: 16, right: 16 }}>
-              <Button
-                variant="contained"
-                onClick={() => handleCloseModal(false)}
-                sx={{
-                  backgroundColor: '#FFFFFF',
-                  color: '#8B0000',
-                  '&:hover': {
-                    backgroundColor: '#f0f0f0',
-                  },
-                  mr: '10px'
-                }}>
-                Cancelar
-              </Button>
-              <Button variant="contained" color="primary" onClick={() => handleAddToCart(selectedOrder)}>Adicionar ao Carrinho</Button>
             </Box>
           </Box>
         </Modal>

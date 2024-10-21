@@ -14,59 +14,66 @@ datasource db {
 }
 
 model Product {
-  id_product        Int                 @id @default(autoincrement())
-
-  name              String              @unique
-  price             Decimal       
-  weight            Decimal       
-  imageProduct      String              @unique
+  id_product        Int                @id @default(autoincrement())
+  name              String             @unique
+  price             Decimal
+  imageProduct      String             @unique
   category          String        
-  availability      Boolean             @default(true)
+  availability      Boolean            @default(true)
 
-  class             Class               @relation(fields: [category], references: [class])
+  id_category       Category           @relation(fields: [category], references: [category])
+
   orderItem         OrderItem[]
 }
 
-model Class {
-  class             String                 @id
+model Category {
+  id_category       Int                @id @default(autoincrement())
+  category          String             @unique
+
   product           Product[]
 }
 
-model Customer {
-  id_customer       Int                 @id @default(autoincrement())
-  name              String
-  ident_document    String              @unique
-  birth_date        DateTime
-  phone             String              @unique
-  email             String              @unique
-  
-  customerAddress   CustomerAddress[]
+
+model User {        
+  id_user           Int                @id        @default(autoincrement())
+  first_name        String        
+  last_name         String        
+  phone             String
+  email             String             @unique
+  password          String        
+  is_admin          Boolean            @default(false)
+
+  address           Address[]
   order             Order[]
-}
+}  
 
-model CustomerAddress {
-  id_address        Int                 @unique @default(autoincrement())
-  id_customer       Int
-
+model Address {
+  id_address        Int                @unique @default(autoincrement())
+  id_user           Int
   street_name       String
   house_number      Int
-  complements       String
+  complements       String             @default("-")
   neighborhood      String
   city              String
   state             String
   
-  customer          Customer            @relation(fields: [id_customer], references: [id_customer])
+  user              User               @relation(fields: [id_user], references: [id_user])
+
+  order             Order []
 }       
 
 model Order {       
-  id_order          Int                  @id @default(autoincrement())
-
-  id_customer       Int
-  date_order        DateTime
+  id_order          Int                @id @default(autoincrement())
+  id_user           Int
+  id_address        Int
+  datetime_order    DateTime           @default(now())
   status            Status
+  total             Decimal            @default(0.00)
 
-  customer          Customer            @relation(fields: [id_customer], references: [id_customer])
-  orderItems        OrderItem[]
+  user              User               @relation(fields: [id_user], references: [id_user])
+  address           Address            @relation(fields: [id_address], references: [id_address])
+
+  orderItem         OrderItem[]
 }       
 
 enum Status {
@@ -80,40 +87,23 @@ enum Status {
 }       
 
 model OrderItem {       
-  id_orderItem      Int                 @id @default(autoincrement())
-
+  id_orderItem      Int                @id @default(autoincrement())
   id_order          Int
-  quantity          Int       
   id_product        Int       
-  id_cuttingType    Int
-  priceOnTheDay     Int       
-  description       String              @default("-") @db.VarChar(250)
-  thickness         Thickness           @default(MEDIUM)
+  cuttingType       String
+  quantity          Decimal       
+  priceOnTheDay     Decimal       
+  description       String             @default("-") @db.VarChar(250)
 
-  cuttingType       CuttingType         @relation(fields: [id_cuttingType], references: [id_cuttingType])
-  product           Product             @relation(fields: [id_product], references: [id_product])
-  order             Order               @relation(fields: [id_order], references: [id_order])
-
+  id_cuttingType    CuttingType        @relation(fields: [cuttingType], references: [cuttingType])
+  product           Product            @relation(fields: [id_product], references: [id_product])
+  order             Order              @relation(fields: [id_order], references: [id_order])
 }       
 
 model CuttingType {         
-  id_cuttingType    Int                  @id @default(autoincrement())
-  cuttingType       String               @unique
+  id_cuttingType    Int                @id @default(autoincrement())
+  cuttingType       String             @unique
 
   orderItems        OrderItem[]        
 }       
-
-enum Thickness {        
-  SMALL       
-  MEDIUM        
-  LARGE       
-}       
-
-model User {        
-  id                Int                   @id        @default(autoincrement())
-  first_name        String        
-  last_name         String        
-  email             String                @unique
-  password          String        
-  is_admin          Boolean               @default(false)
-}       
+     

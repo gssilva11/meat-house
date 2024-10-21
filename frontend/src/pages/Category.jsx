@@ -13,6 +13,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
 import ButtonsPageTable from '../components/ButtonsPageTable.jsx';
+import Notification, { notifySuccess, notifyError } from '../components/Notification';
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
@@ -21,16 +22,17 @@ const Category = () => {
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [deleteInput, setDeleteInput] = useState('');
   const [deleteError, setDeleteError] = useState(false);
-  const [newCategory, setNewCategory] = useState({ class: '' });
+  const [newCategory, setNewCategory] = useState({ category: '' });
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await myfetch.get('class');
+        const data = await myfetch.get('category');
         setCategories(data);
       } catch (error) {
         console.error(error);
+        notifyError('Erro ao carregar categorias');
       }
     };
     fetchCategories();
@@ -38,10 +40,11 @@ const Category = () => {
 
   const reloadCategories = async () => {
     try {
-      const data = await myfetch.get('class');
+      const data = await myfetch.get('category');
       setCategories(data);
     } catch (error) {
       console.error(error);
+      notifyError('Erro ao recarregar categorias');
     }
   };
 
@@ -52,13 +55,15 @@ const Category = () => {
 
   const handleCreateCategory = async () => {
     try {
-      const data = await myfetch.post('class', newCategory);
+      const data = await myfetch.post('category', newCategory);
       setCategories([...categories, data]);
       setCreateModalOpen(false);
-      setNewCategory({ class: '' });
-      reloadCategories();
+      setNewCategory({ category: '' });
+      await reloadCategories();
+      notifySuccess('Categoria criada com sucesso');
     } catch (error) {
       console.error(error);
+      notifyError('Erro ao criar categoria: categoria já existente ou erro no servidor');
     }
   };
 
@@ -70,13 +75,15 @@ const Category = () => {
   const handleDeleteConfirm = async () => {
     if (deleteInput === 'EXCLUIR') {
       try {
-        await myfetch.delete(`class/${categoryToDelete.class}`);
+        await myfetch.delete(`category/${categoryToDelete.id_category}`);
         await reloadCategories();
         setDeleteModalOpen(false);
         setDeleteInput('');
         setDeleteError(false);
+        notifySuccess('Categoria excluída com sucesso');
       } catch (error) {
         console.error(error);
+        notifyError('Erro ao excluir categoria');
       }
     } else {
       setDeleteError(true);
@@ -84,11 +91,11 @@ const Category = () => {
   };
 
   const filteredCategories = categories.filter((category) =>
-    category.class.toLowerCase().includes(searchTerm.toLowerCase())
+    category.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const columns = [
-    { field: 'class', headerName: 'Categoria', flex: 1 },
+    { field: 'category', headerName: 'Categoria', flex: 1 },
     {
       field: 'actions',
       headerName: 'Ações',
@@ -169,7 +176,7 @@ const Category = () => {
             pageSize={5}
             rowsPerPageOptions={[5]}
             disableSelectionOnClick
-            getRowId={(row) => row.class}
+            getRowId={(row) => row.id_category}
             className="css-19lesmn-MuiDataGrid-root"
             sx={{
               '& .MuiDataGrid-columnHeader': {
@@ -190,30 +197,30 @@ const Category = () => {
 
       {/* MODAL DE CRIAÇÃO */}
       <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
-        <Box
-          sx={{
-            padding: '2rem',
-            backgroundColor: '#fff',
-            margin: 'auto',
-            marginTop: '10%',
-            borderRadius: 1,
-            boxShadow: 24,
-            width: '700px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}
-        >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
           <IconButton onClick={() => setCreateModalOpen(false)} sx={{ alignSelf: 'flex-start', marginBottom: '20px' }}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignSelf: 'center', position: 'absolute' }}>Criar Nova Categoria</Typography>
           <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <TextField
-              label="Class"
-              name="class"
+              label="Categoria"
+              name="category"
               variant="outlined"
-              value={newCategory.class}
+              value={newCategory.category}
               onChange={handleCreateChange}
               sx={{
                 backgroundColor: '#F8F8F8',
@@ -295,13 +302,11 @@ const Category = () => {
           }} sx={{ alignSelf: 'flex-start' }}>
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" gutterBottom sx={{ alignSelf: 'center', position: 'absolute', color: '#cc0000' }}>
-            ATENÇÃO!
-          </Typography>
+          <Typography variant="h6" gutterBottom sx={{ alignSelf: 'center', position: 'absolute', color: '#cc0000' }}>ATENÇÃO!</Typography>
           <Typography variant="h6" gutterBottom sx={{ alignSelf: 'flex-start' }}>
             Confirmação de Exclusão:
             <Box component="span" sx={{ color: '#8B0000', ml: '5px' }}>
-              "{categoryToDelete?.class}"
+              "{categoryToDelete?.category}"
             </Box>
           </Typography>
           <Typography variant="body1" gutterBottom sx={{ alignSelf: 'flex-start' }}>
@@ -374,7 +379,10 @@ const Category = () => {
           </Box>
         </Box>
       </Modal>
+      {/* Notificação */}
+      <Notification />
       <ButtonsPageTable />
+
     </>
   );
 };

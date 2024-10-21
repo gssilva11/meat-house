@@ -17,16 +17,9 @@ import InfoIcon from '@mui/icons-material/Info';
 import myfetch from '../utils/myfetch';
 import Notification, { notifySuccess, notifyError } from './Notification';
 
-const thicknessTypes = {
-  Pequeno: 'SMALL',
-  Médio: 'MEDIUM',
-  Grande: 'LARGE'
-};
-
 const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   const [quantity, setQuantity] = useState(100);
   const [selectedCut, setSelectedCut] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');
   const [cuts, setCuts] = useState([]);
   const [description, setDescription] = useState('');
   const maxChars = 150;
@@ -44,7 +37,6 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   const resetFields = () => {
     setQuantity(100);
     setSelectedCut('');
-    setSelectedSize('');
     setDescription('');
   };
 
@@ -64,27 +56,45 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   }, [product, open]);
 
   const handleAddToCart = async () => {
+    if (!selectedCut) {
+      notifyError('Por favor, selecione o tipo de corte');
+      return; // Bloqueia o processo se o tipo de corte não for selecionado
+    }
+
     try {
+      const selectedCuttingType = cuts.find(cut => cut.id_cuttingType === selectedCut);
       const selectedProduct = {
         quantity,
-        thickness: thicknessTypes[selectedSize],
         description,
-        priceOnTheDay: Number((product.price * quantity / 1000).toFixed(2)),
-        cuttingType: { connect: { id_cuttingType: selectedCut } },
-        product: { connect: { id_product: product.id_product } },
-        order: { connect: { id_order: 3 } }, // id test
+        priceOnTheDay: product.price,
+        cuttingType: { 
+          connect: { id_cuttingType: selectedCut },
+          name: selectedCuttingType ? selectedCuttingType.cuttingType : ''
+        },
+        product: { 
+          connect: { id_product: product.id_product },
+          name: product.name
+        },
       };
-
-      const success = await myfetch.post('orderItem', selectedProduct);
-
-      if (success) {
-        notifySuccess('Item adicionado ao carrinho!');
-        onAddToCart(selectedProduct);
-        resetFields(); // Clear the fields after adding to cart
-        return;
+  
+      const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+      const existingProductIndex = existingCart.findIndex(
+        (item) => item.product.connect.id_product === product.id_product
+      );
+  
+      if (existingProductIndex !== -1) {
+        // Atualiza o produto existente no carrinho
+        existingCart[existingProductIndex] = selectedProduct;
+        notifySuccess('Item atualizado no carrinho!');
       } else {
-        notifyError('Erro ao adicionar item ao carrinho');
+        // Adiciona um novo produto ao carrinho
+        existingCart.push(selectedProduct);
+        notifySuccess('Item adicionado ao carrinho!');
       }
+  
+      localStorage.setItem('cart', JSON.stringify(existingCart));
+      onAddToCart(selectedProduct);
+      resetFields();
     } catch (error) {
       console.error('Error adding item to cart:', error);
       notifyError('Erro ao adicionar item ao carrinho');
@@ -94,15 +104,23 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
   useEffect(() => {
     if (!open) {
       resetFields();
+    } else {
+      // Verifica se o produto já existe no localStorage e preenche os campos
+      const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+      const existingProduct = existingCart.find(
+        (item) => item.product.connect.id_product === product.id_product
+      );
+
+      if (existingProduct) {
+        setQuantity(existingProduct.quantity);
+        setSelectedCut(existingProduct.cuttingType.connect.id_cuttingType);
+        setDescription(existingProduct.description);
+      }
     }
-  }, [open]);
+  }, [open, product]);
 
   const handleCutChange = (event) => {
     setSelectedCut(event.target.value);
-  };
-
-  const handleSizeChange = (event) => {
-    setSelectedSize(event.target.value);
   };
 
   const increaseQuantity = () => setQuantity(prev => prev + 100);
@@ -135,7 +153,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
               {!isMobile && (
                 <>
                   <img
-                    src={product.imageProduct}
+                    src={`src/assets/products/${product.imageProduct}`}
                     alt={product.name}
                     style={{
                       width: '50%',
@@ -207,40 +225,7 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Select
-                  value={selectedSize}
-                  onChange={handleSizeChange}
-                  displayEmpty
-                  fullWidth
-                  sx={{
-                    mt: 2,
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#020002',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#C62828',
-                      cursor: 'pointer'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#020002',
-                    },
-                    '& .MuiSelect-select': {
-                      color: theme.palette.text.primary,
-                    },
-                    '&.Mui-focused': {
-                      color: theme.palette.accent.main,
-                    },
-                  }}
-                >
-                  <MenuItem value="" disabled>
-                    Selecione o tamanho
-                  </MenuItem>
-                  {Object.keys(thicknessTypes).map((size) => (
-                    <MenuItem key={size} value={size}>
-                      {size}
-                    </MenuItem>
-                  ))}
-                </Select>
+
                 <Box position="relative" width="100%" mt={2}>
                   <TextareaAutosize
                     aria-label="Observações"
@@ -281,87 +266,43 @@ const ProductModal = ({ open, onClose, product, onAddToCart }) => {
                   </Typography>
                 </Box>
 
-                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box display="flex" justifyContent='space-between' mt={2}>
+
                   <Box>
-                    <IconButton
-                      onClick={decreaseQuantity}
-                      size="small"
-                      sx={{
-                        padding: '2px 5px',
-                        border: '1px solid red',
-                        marginRight: '15px',
-                        borderRadius: '5px',
-                        mb: '10px',
-                        '&:hover': {
-                          backgroundColor: 'inherit',
-                        },
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ color: '#C62828' }}>-100g</Typography>
-                    </IconButton>
-                    <IconButton
-                      onClick={decreaseQuantityByKg}
-                      size="large"
-                      sx={{
-                        padding: '2px 5px',
-                        backgroundColor: 'red',
-                        borderRadius: '5px',
-                        mb: '10px',
-                        border: '1px solid red',
-                        '&:hover': {
-                          backgroundColor: 'red',
-                        },
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ color: '#f0f0f0' }}>- 1Kg</Typography>
-                    </IconButton>
+                    <Button onClick={decreaseQuantity} variant="outlined" sx={{ color: '#C62828', borderColor: '#C62828', justifyContent: 'start', marginRight:'15px'}}>
+                      -100g
+                    </Button>
+                    <Button onClick={decreaseQuantityByKg} variant="outlined" sx={{ color: '#f0f0f0', borderColor: '#C62828', backgroundColor: '#C62828' }}>
+                      -1kg
+                    </Button>
                   </Box>
-                  <Typography variant="h6" component="p" sx={{ mx: 2, margin: '0 40px 0 40px' }}>
-                    {quantity}g
-                    <Typography sx={{ color: 'grey', textAlign:'center' }}>
-                      ({quantity / 1000}kg)
-                    </Typography>
-                  </Typography>
+
+                  <Typography>{quantity}g</Typography>
+
                   <Box>
-                    <IconButton
-                      onClick={increaseQuantity}
-                      size="small"
-                      sx={{
-                        padding: '2px 5px',
-                        marginRight: '15px',
-                        border: '1px solid green',
-                        borderRadius: '5px',
-                        mb: '10px',
-                        '&:hover': {
-                          backgroundColor: 'inherit',
-                        },
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ color: 'green' }}>+100g</Typography>
-                    </IconButton>
-                    <IconButton
-                      onClick={increaseQuantityByKg}
-                      size="large"
-                      sx={{
-                        padding: '2px 5px',
-                        backgroundColor: 'green',
-                        borderRadius: '5px',
-                        mb: '10px',
-                        border: '1px solid green',
-                        '&:hover': {
-                          backgroundColor: 'green',
-                        },
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ color: '#f0f0f0' }}>+ 1Kg</Typography>
-                    </IconButton>
+                    <Button onClick={increaseQuantity} variant="outlined" sx={{ color: 'green', borderColor: 'green',  marginRight:'15px' }}>
+                      +100g
+                    </Button>
+                    <Button onClick={increaseQuantityByKg} variant="outlined" sx={{ color: '#f0f0f0', borderColor: 'green', backgroundColor: 'green' }}>
+                      +1kg
+                    </Button>
                   </Box>
+
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end', mt: 2, width: isMobile ? '100%' : 'auto' }}>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'end'
+                  }}>
                   <Button
                     variant="contained"
-                    color="primary"
                     onClick={handleAddToCart}
+                    sx={{
+                      mt: 3,
+                      backgroundColor: '#C62828',
+                      '&:hover': { backgroundColor: '#C62828' },
+                    }}
                   >
                     Adicionar ao Carrinho
                   </Button>

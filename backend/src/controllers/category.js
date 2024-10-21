@@ -1,15 +1,14 @@
 import prisma from '../database/client.js';
-import Class from '../models/class.js';
+import Category from '../models/category.js';
 import { ZodError } from 'zod';
 
 const controller = {};
 
-// Create a new class entry
 controller.create = async function(req, res) {
   try {
-    Class.parse(req.body);  // Validate the request body with Zod
+    Category.parse(req.body);  // Validate the request body with Zod
     
-    await prisma.class.create({ data: req.body });
+    await prisma.category.create({ data: req.body });
     
     res.status(201).end();
   } catch (error) {
@@ -25,12 +24,11 @@ controller.create = async function(req, res) {
   }
 };
 
-// Retrieve all class entries
 controller.retrieveAll = async function(req, res) {
   try {
-    const result = await prisma.class.findMany({
+    const result = await prisma.category.findMany({
       orderBy: [
-        { class: 'asc' }  // Updated to use the correct field
+        { category: 'asc' }  // Updated to use the correct field
       ]
     });
     res.send(result);
@@ -40,11 +38,10 @@ controller.retrieveAll = async function(req, res) {
   }
 };
 
-// Retrieve a single class entry by ID
 controller.retrieveOne = async function(req, res) {
   try {
-    const result = await prisma.class.findUnique({
-      where: { class: req.params.id }  // Updated to use the correct field
+    const result = await prisma.category.findUnique({
+      where: { id_category: Number(req.params.id) },
     });
 
     if (result) res.send(result);
@@ -55,13 +52,12 @@ controller.retrieveOne = async function(req, res) {
   }
 };
 
-// Update a class entry by ID
 controller.update = async function(req, res) {
   try {
-    Class.parse(req.body);  // Validate the request body with Zod
+    Category.parse(req.body);  // Validate the request body with Zod
 
-    const result = await prisma.class.update({
-      where: { class: req.params.id },  // Updated to use the correct field
+    const result = await prisma.category.update({
+      where: { id_category: Number(req.params.id) },
       data: req.body
     });
 
@@ -78,11 +74,10 @@ controller.update = async function(req, res) {
   }
 };
 
-// Delete a class entry by ID
 controller.delete = async function(req, res) {
   try {
-    const result = await prisma.class.delete({
-      where: { class: req.params.id }  // Updated to use the correct field
+    const result = await prisma.category.delete({
+      where: { id_category: Number(req.params.id) },
     });
     
     if (result) res.status(204).end();

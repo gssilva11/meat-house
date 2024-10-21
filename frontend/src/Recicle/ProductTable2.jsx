@@ -1,23 +1,28 @@
 import React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import {
-  IconButton,
-  Checkbox,
-} from '@mui/material';
+import { IconButton, Checkbox } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const ProductTable = ({ products, handleEditClick, handleDeleteClick, filterName, filterClass }) => {
+  // Filtragem dos produtos com base no nome e na categoria
   const filteredProducts = products.filter(product =>
-    (product.name?.toLowerCase().includes(filterName.toLowerCase())) &&
-    (product.class?.class?.toLowerCase().includes(filterClass.toLowerCase()))
+    product.name?.toLowerCase().includes(filterName.toLowerCase()) &&
+    product.category?.name?.toLowerCase().includes(filterClass.toLowerCase())
   );
 
+  // Colunas da tabela
   const columns = [
     { field: 'name', headerName: 'Nome', flex: 1 },
     { field: 'price', headerName: 'Preço (R$)', flex: 1, align: 'center', headerAlign: 'center' },
-    { field: 'weight', headerName: 'Peso (g)', flex: 1, align: 'center', headerAlign: 'center' },
-    { field: 'class', headerName: 'Classe', flex: 1, align: 'center', headerAlign: 'center', valueGetter: (params) => params.row.class.class },
+    { 
+      field: 'category', 
+      headerName: 'Categoria', 
+      flex: 1, 
+      align: 'center', 
+      headerAlign: 'center',
+      valueGetter: (params) => params.row.category?.name || 'Sem Categoria'  // Obtém o nome da categoria
+    },
     {
       field: 'availability',
       headerName: 'Disponibilidade',
@@ -55,12 +60,12 @@ const ProductTable = ({ products, handleEditClick, handleDeleteClick, filterName
         pageSize={5}
         rowsPerPageOptions={[5]}
         disableSelectionOnClick
-        getRowId={(row) => row.id_product}
+        getRowId={(row) => row.id_product}  // Certifique-se de que este campo corresponde ao id correto
         className="css-19lesmn-MuiDataGrid-root"
         sx={{
           '& .MuiDataGrid-columnHeader': {
             backgroundColor: '#8B0000',
-            color: '#f0f0f0'
+            color: '#f0f0f0',
           },
           '& .MuiCheckbox-root': {
             color: '#C62828',
@@ -70,7 +75,7 @@ const ProductTable = ({ products, handleEditClick, handleDeleteClick, filterName
             color: '#020002',
           },
           '& .MuiDataGrid-scrollbarFiller--header': {
-            backgroundColor: '#8B0000'
+            backgroundColor: '#8B0000',
           },
         }}
       />

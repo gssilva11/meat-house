@@ -1,117 +1,138 @@
-import prisma from '../database/client.js'
-import Product from "../models/product.js"
+import { ZodError } from 'zod'; // Importa ZodError
+import prisma from '../database/client.js';
+import Product from '../models/product.js';
 
-const controller = {}
+const controller = {};
 
+// Método para criar um produto
 controller.create = async function(req, res) {
   try {
-    Product.parse(req.body)
+    // Arredonda o valor do preço para duas casas decimais e mantém como número
+    req.body.price = parseFloat(Number(req.body.price).toFixed(2));
 
-    await prisma.product.create({ data: req.body })
+    // Valida o produto com o esquema Zod
+    Product.parse(req.body);
+
+    // Cria o produto no banco de dados
+    await prisma.product.create({ data: req.body });
     
-    res.status(201).end()
-  }
-  catch (error){
-    console.error(error)
+    res.status(201).end();
+  } catch (error) {
+    console.error(error);
 
-    // Retorna HTTP 422: Unprocessable Entity
-    if(error instanceof ZodError) res.status(422).send(error.issues)
-    
-    // HTTP 500: Internal Server Error
-    else res.status(500).send(error)
+    // Se o erro for do tipo ZodError, envia os problemas de validação
+    if (error instanceof ZodError) {
+      res.status(422).send(error.issues);
+    } else {
+      // Caso contrário, envia erro 500
+      res.status(500).send(error);
+    }
   }
-}
+};
 
+// Método para recuperar todos os produtos
 controller.retrieveAll = async function(req, res) {
   try {
+    // Busca todos os produtos e os ordena por nome em ordem ascendente
     const result = await prisma.product.findMany({
-      orderBy: [
-        { name: 'asc' }
-      ]
-    })
-    res.send(result)
+      orderBy: [{ name: 'asc' }]
+    });
+    
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    // Retorna erro 500
+    res.status(500).send(error);
   }
-  catch(error) {
-    console.error(error)
-    // HTTP 500: Internal Server Error
-    res.status(500).send(error)
-  }
-}
+};
 
+// Método para recuperar um único produto por ID
 controller.retrieveOne = async function(req, res) {
   try {
     const result = await prisma.product.findUnique({
       where: { id_product: Number(req.params.id) }
-    })
+    });
 
-    // Encontrou: retorna HTTP 200: OK
-    if(result) res.send(result)
-    // Não encontrou: retorna HTTP 404: Not found
-    else res.status(404).end()
+    // Se o produto for encontrado, retorna com status 200
+    if (result) res.send(result);
+    // Se não for encontrado, retorna 404
+    else res.status(404).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
   }
-  catch(error) {
-    console.error(error)
-    res.status(500).send(error)
-  }
-}
+};
 
+// Método para atualizar um produto existente
 controller.update = async function(req, res) {
   try {
-    Product.parse(req.body)
+    // Arredonda o valor do preço para duas casas decimais e mantém como número
+    req.body.price = parseFloat(Number(req.body.price).toFixed(2));
 
+    // Valida os dados com o esquema Zod
+    Product.parse(req.body);
+
+    // Atualiza o produto no banco de dados
     const result = await prisma.product.update({
       where: { id_product: Number(req.params.id) },
-      data: req.body
-    })
+      data: req.body,
+    });
 
-    if(result) res.status(204).end()
-    else res.status(404).end()
-  }
-  catch(error) {
-    console.error(error)
+    // Se a atualização foi bem-sucedida, retorna 204 (sem conteúdo)
+    if (result) res.status(204).end();
+    // Se o produto não for encontrado, retorna 404
+    else res.status(404).end();
+  } catch (error) {
+    console.error(error);
     
-    if(error instanceof ZodError) res.status(422).send(error.issues)
-    
-    else res.status(500).send(error)
+    // Se o erro for do tipo ZodError, envia os problemas de validação
+    if (error instanceof ZodError) {
+      res.status(422).send(error.issues);
+    } else {
+      // Caso contrário, envia erro 500
+      res.status(500).send(error);
+    }
   }
-}
+};
 
+// Método para deletar um produto
 controller.delete = async function(req, res) {
   try {
+    // Deleta o produto pelo ID
     const result = await prisma.product.delete({
       where: { id_product: Number(req.params.id) }
-    })
+    });
     
-    if(result) res.status(204).end()
-    else res.status(404).end()
+    // Se a exclusão for bem-sucedida, retorna 204 (sem conteúdo)
+    if (result) res.status(204).end();
+    // Se o produto não for encontrado, retorna 404
+    else res.status(404).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
   }
-  catch(error) {
-    console.error(error)
-    res.status(500).send(error)
-  }
-}
+};
 
-// Adiciona o método de busca
+// Método de busca por nome do produto
 controller.search = async function(req, res) {
   const { search } = req.query;
   try {
+    // Realiza a busca no banco de dados pelo nome do produto que começa com o termo informado
     const result = await prisma.product.findMany({
       where: {
         name: {
           startsWith: search,
-          mode: 'insensitive' // Faz a busca sem diferenciar maiúsculas e minúsculas
+          mode: 'insensitive' // Busca sem diferenciar maiúsculas e minúsculas
         }
       },
-      orderBy: [
-        { name: 'asc' }
-      ]
-    })
-    res.send(result)
-  }
-  catch(error) {
-    console.error(error)
-    res.status(500).send(error)
-  }
-}
+      orderBy: [{ name: 'asc' }]
+    });
 
-export default controller
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+};
+
+export default controller;

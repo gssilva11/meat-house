@@ -30,7 +30,7 @@ const ProfilePage = () => {
         return;
       }
       try {
-        const data = await myfetch.get(`customer/${id}`);
+        const data = await myfetch.get(`user/${id}`);
         setUserData(data);
       } catch (error) {
         console.error(error);
@@ -50,7 +50,7 @@ const ProfilePage = () => {
   const handleSaveEdit = async () => {
     try {
       const updatedData = { ...userData, ...editField };
-      await myfetch.put(`customer/${id}`, updatedData);
+      await myfetch.put(`user/${id}`, updatedData);
       setUserData(updatedData);
       setEditModalOpen(false);
     } catch (error) {
@@ -65,7 +65,7 @@ const ProfilePage = () => {
         alert("Nova senha e confirmação não correspondem!");
         return;
       }
-      await myfetch.put(`customer/${id}/password`, { currentPassword, newPassword });
+      await myfetch.put(`user/${id}/password`, { currentPassword, newPassword });
       alert("Senha alterada com sucesso!");
       setPasswordFields({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error) {
@@ -99,10 +99,11 @@ const ProfilePage = () => {
                 Minha Conta
               </Typography>
               <Divider sx={{ mb: 2, backgroundColor: '#f0f0f0' }} />
+
               <TextField
                 label="Nome"
                 variant="filled"
-                value={userData.name || ''}
+                value={`${userData.first_name || ''} ${userData.last_name || ''}`}
                 disabled
                 sx={{
                   mb: 2,
@@ -124,58 +125,7 @@ const ProfilePage = () => {
                 }}
                 fullWidth
               />
-              <TextField
-                label="CPF"
-                variant="filled"
-                value={userData.ident_document || ''}
-                disabled
-                sx={{
-                  mb: 2,
-                  bgcolor: '#333',
-                  '& .MuiInputBase-input': {
-                    color: '#f0f0f0',
-                    WebkitTextFillColor: '#f0f0f0',
-                    '&.Mui-disabled': {
-                      color: '#f0f0f0 !important',
-                      WebkitTextFillColor: '#f0f0f0 !important',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#C62828',
-                    '&.Mui-disabled': {
-                      color: '#C62828 !important',
-                    },
-                  },
-                }}
-                fullWidth
-              />
-              <TextField
-                label="Data de Nascimento"
-                variant="filled"
-                type="date"
-                value={userData.birth_date ? userData.birth_date.slice(0, 10) : ''}
-                disabled
-                sx={{
-                  mb: 2,
-                  bgcolor: '#333',
-                  '& .MuiInputBase-input': {
-                    color: '#f0f0f0',
-                    WebkitTextFillColor: '#f0f0f0',
-                    '&.Mui-disabled': {
-                      color: '#f0f0f0 !important',
-                      WebkitTextFillColor: '#f0f0f0 !important',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#C62828',
-                    '&.Mui-disabled': {
-                      color: '#C62828 !important',
-                    },
-                  },
-                }}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-              />
+
               <TextField
                 label="Telefone"
                 variant="filled"
@@ -201,6 +151,7 @@ const ProfilePage = () => {
                 }}
                 fullWidth
               />
+
               <TextField
                 label="Email"
                 variant="filled"
@@ -226,9 +177,10 @@ const ProfilePage = () => {
                 }}
                 fullWidth
               />
+
               <Button
                 onClick={() => {
-                  setEditField({ name: userData.name, email: userData.email });
+                  setEditField({ first_name: userData.first_name, last_name: userData.last_name, email: userData.email });
                   setEditModalOpen(true);
                 }}
                 variant="contained"
@@ -240,13 +192,15 @@ const ProfilePage = () => {
             </Box>
           )}
           {selectedMenu === 'Segurança' && (
-            <Box display='flex' flexDirection='column' >
+            <Box display='flex' flexDirection='column'>
               <Typography variant="h5" gutterBottom>
                 Segurança
               </Typography>
               <Divider sx={{ mb: 2, backgroundColor: '#f0f0f0' }} />
+
               <Box display='flex' justifyContent='space-between' width='100%'>
                 <Box display='flex' flexDirection='column' width='50%'>
+                  {/* Campo para senha atual */}
                   <TextField
                     label="Senha Atual"
                     variant="filled"
@@ -266,7 +220,10 @@ const ProfilePage = () => {
                       },
                     }}
                   />
+
                   <Divider sx={{ bgcolor: "primary.light", mb: '20px', width: '100%' }} />
+
+                  {/* Campo para nova senha */}
                   <TextField
                     label="Nova Senha"
                     variant="filled"
@@ -286,6 +243,8 @@ const ProfilePage = () => {
                       },
                     }}
                   />
+
+                  {/* Campo para confirmação da nova senha */}
                   <TextField
                     label="Confirmar Nova Senha"
                     variant="filled"
@@ -305,6 +264,7 @@ const ProfilePage = () => {
                       },
                     }}
                   />
+
                   <Button
                     onClick={handleSavePassword}
                     variant="contained"
@@ -314,9 +274,12 @@ const ProfilePage = () => {
                     Salvar
                   </Button>
                 </Box>
+
                 <Box>
                   <Divider orientation='vertical' sx={{ backgroundColor: '#303030' }} />
                 </Box>
+
+                {/* Seção de dicas de segurança */}
                 <Box sx={{ width: '40%', textAlign: 'left', color: '#ffffff', pl: 2 }}>
                   <Typography variant="body1" sx={{ mb: 2 }}>
                     Dicas para uma boa senha:
@@ -346,13 +309,18 @@ const ProfilePage = () => {
                 Endereços cadastrados:
               </Typography>
               <Divider sx={{ mb: 2, backgroundColor: '#f0f0f0' }} />
+
               <Box display='flex' justifyContent='space-between' width='100%'>
                 <Box display='flex' flexDirection='column' width='50%'>
+                  {/* Componente de gerenciamento de endereços */}
                   <Address userId={id} />
                 </Box>
+
                 <Box>
                   <Divider orientation='vertical' sx={{ backgroundColor: '#303030' }} />
                 </Box>
+
+                {/* Orientações sobre o cadastro de endereços */}
                 <Box sx={{ width: '40%', textAlign: 'left', color: '#ffffff', pl: 2 }}>
                   <Typography variant="body2" sx={{ mb: 2, color: '#f0f0f0' }}>
                     Você pode ter até 3 endereços vinculados a sua conta.
@@ -370,20 +338,24 @@ const ProfilePage = () => {
               </Box>
             </Box>
           )}
-
           {selectedMenu === 'Histórico de Pedidos' && (
             <Box display='flex' flexDirection='column'>
               <Typography variant="h5" gutterBottom>
                 Pedidos Realizados
               </Typography>
               <Divider sx={{ mb: 2, backgroundColor: '#f0f0f0' }} />
+
               <Box display='flex' justifyContent='space-between' width='100%'>
+                {/* Exibição do histórico de pedidos */}
                 <Box display='flex' flexDirection='column' width='50%'>
                   <History />
                 </Box>
+
                 <Box>
                   <Divider orientation='vertical' sx={{ backgroundColor: '#303030' }} />
                 </Box>
+
+                {/* Informações importantes sobre a repetição de compras */}
                 <Box sx={{ width: '40%', textAlign: 'left', color: '#ffffff', pl: 2 }}>
                   <Typography variant="h5" sx={{ mb: 3, textDecoration: 'underline' }}>
                     Atenção, ao repetir uma compra:

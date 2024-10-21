@@ -1,13 +1,13 @@
 import { z } from 'zod'
 
-const CustomerAddress = z.object({
+const Address = z.object({
 
-  id_customer: 
+  id_user: 
     z.number(),
   
   street_name: 
     z.string()
-    .max(40, { message: 'O nome da rua pode conter, no máximo, 40 caracteres' }),
+    .max(64, { message: 'O nome da rua pode conter, no máximo, 64 caracteres' }),
   
   house_number: 
     z.number()
@@ -20,15 +20,15 @@ const CustomerAddress = z.object({
   
   neighborhood: 
     z.string()
-    .max(30, { message: 'O bairro pode conter, no máximo, 30 caracteres' }),
+    .max(64, { message: 'O bairro pode conter, no máximo, 64 caracteres' }),
   
   city: 
     z.string()
-    .max(40, { message: 'O nome da cidade pode conter, no máximo, 40 caracteres' }),
+    .max(64, { message: 'O nome da cidade pode conter, no máximo, 64 caracteres' }),
   
   state: 
     z.string()
     .length(2, { message: 'UF deve ter, exatamente, 2 caracteres' }),
 })
 
-export default CustomerAddress
+export default Address

@@ -14,10 +14,11 @@ import detalheIcon from '../assets/logo/tituloDetalhe.png';
 import InfoIcon from '@mui/icons-material/Info';
 import { Textfit } from 'react-textfit';
 import { useMediaQuery } from '@mui/material'; // Importar useMediaQuery
-import logo from '../assets/logo/logo.png'
+import logo from '../assets/logo/logo.png';
+import LoadingSpinner from '../components/LoadingSpinner'; // Importe o componente de loading
 
 const getImagePath = (imageProduct) => {
-  return `${imageProduct}`;
+  return `../src/assets/products/${imageProduct}`;
 };
 
 const Tilt = ({ children }) => {
@@ -46,10 +47,10 @@ const Tilt = ({ children }) => {
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Estado de loading
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState(null);
-
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -65,6 +66,8 @@ const HomePage = () => {
         setProducts(availableProducts);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false); // Carregamento finalizado
       }
     };
 
@@ -110,6 +113,11 @@ const HomePage = () => {
   }, {});
 
   const sortedCategories = Object.keys(groupedProducts).sort();
+
+  if (loading) {
+    // Exibe o spinner enquanto os produtos estão sendo carregados
+    return <LoadingSpinner message="Carregando produtos..." />;
+  }
 
   return (
     <>
