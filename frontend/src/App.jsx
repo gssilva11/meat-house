@@ -17,6 +17,7 @@ import History from './components/History.jsx';
 import Category from './pages/Category.jsx';
 import Cut from './pages/Cut.jsx';
 import OrderCheckout from './pages/OrderCheckout.jsx';
+import OrderTracking from './pages/OrderTracking.jsx';
 
 function App() {
   return (
@@ -37,6 +38,8 @@ function App() {
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/history/:id" element={<History />} />
           <Route path="/checkout" element={<OrderCheckout />} />
+          <Route path="/orderTracking" element={<OrderTracking />} />
+
         </Routes>
       </Box>
       <FooterBar />

@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography, List, ListItem, ListItemText, Divider, Modal, IconButton } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useParams, useNavigate } from 'react-router-dom';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import History from '../components/History.jsx';
 import Address from '../components/Address.jsx';
 
 const ProfilePage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [userData, setUserData] = useState({});
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState('Minha Conta');

@@ -4,60 +4,80 @@ import { ZodError } from 'zod';
 
 const controller = {};
 
-// Finalizar pedido
 controller.create = async function (req, res) {
   try {
-    Order.parse(req.body); // Valida o corpo da requisição com Zod
+    // Valida o corpo da requisição com Zod
+    Order.parse(req.body);
 
-    // Criar a ordem com total inicial 0 e horário atual
+    // Cria a ordem com total inicial 0 e horário atual
     const order = await prisma.order.create({
       data: {
-        id_user: req.body.id_user,
-        id_address: req.body.id_address,
-        datetime_order: new Date(), // Pega o horário atual automaticamente
-        status: 'AWAITING', // Define o status como Aguardando
-        total: 0, // Inicialmente total 0
+        id_user: req.body.id_user, // Aqui conectamos o usuário através do ID
+        id_address: req.body.id_address || null,
+        datetime_order: new Date(),
+        status: 'AWAITING',
+        total: 0,
       },
     });
 
     let totalOrder = 0;
 
-    // Iterar sobre os itens do pedido (recebidos via req.body.orderItems)
-    for (const item of req.body.orderItems) {
-      // Criar os itens de pedido e associá-los à ordem
-      const orderItem = await prisma.orderItem.create({
-        data: {
-          id_order: order.id_order,
-          id_product: item.id_product,
-          cuttingType: item.cuttingType,
-          quantity: item.quantity,
-          priceOnTheDay: item.priceOnTheDay,
-          description: item.description || '-',
-        },
+    // Verifica se há itens de pedido
+    if (req.body.orderItems && req.body.orderItems.length > 0) {
+      // Cria os itens de pedido em paralelo
+      const orderItemsPromises = req.body.orderItems.map(async (item) => {
+        // Verifica se o cuttingType existe na tabela CuttingType
+        const cuttingType = await prisma.cuttingType.findUnique({
+          where: { id_cuttingType: item.cuttingType },
+        });
+
+        // Se o cuttingType não existir, lança um erro
+        if (!cuttingType) {
+          throw new Error(`Tipo de corte com ID ${item.cuttingType} não encontrado. Verifique o ID e tente novamente.`);
+        }
+
+        totalOrder += item.priceOnTheDay * item.quantity; // Calcula o total para cada item
+
+        // Cria os itens de pedido e os associa à ordem
+        return prisma.orderItem.create({
+          data: {
+            id_order: order.id_order,
+            id_product: item.id_product,
+            cuttingType: cuttingType.cuttingType, // Atribui a string do tipo de corte
+            quantity: item.quantity,
+            priceOnTheDay: item.priceOnTheDay,
+            description: item.description || '-',
+          },
+        });
       });
 
-      // Calcular o total com base nos itens de pedido
-      totalOrder += item.priceOnTheDay * item.quantity;
+      // Aguarda a criação de todos os itens de pedido
+      await Promise.all(orderItemsPromises);
     }
 
-    // Atualizar o total da ordem
+    // Atualiza o total da ordem após todos os itens serem criados
     await prisma.order.update({
       where: { id_order: order.id_order },
       data: { total: totalOrder },
     });
 
+    // Responde com sucesso
     res.status(201).json({ message: 'Pedido finalizado com sucesso!', order });
 
   } catch (error) {
     console.error(error);
 
+    // Tratar erros de validação Zod
     if (error instanceof ZodError) {
-      res.status(422).send(error.issues); // Validação Zod falhou
+      res.status(422).json({ errors: error.issues });
     } else {
-      res.status(500).send(error); // Erro interno do servidor
+      // Retornar um erro genérico ou específico se o cuttingType não existir
+      res.status(400).json({ message: error.message || 'Erro ao processar o pedido' });
     }
   }
 };
+
+
 
 // Buscar todas as ordens
 controller.retrieveAll = async function (req, res) {
@@ -78,12 +98,14 @@ controller.retrieveOne = async function (req, res) {
     const result = await prisma.order.findUnique({
       where: { id_order: Number(req.params.id) },
       include: {
-        orderItems: {
+        orderItem: { // Corrigido de 'orderItems' para 'orderItem'
           include: {
             product: true,
-            cuttingType: true,
+            id_cuttingType: true, // Correto: referência ao modelo CuttingType pelo campo 'id_cuttingType'
           },
         },
+        user: true, // Inclui dados do usuário
+        address: true, // Inclui dados do endereço
       },
     });
 
@@ -94,6 +116,7 @@ controller.retrieveOne = async function (req, res) {
     res.status(500).send(error);
   }
 };
+
 
 // Atualizar uma ordem
 controller.update = async function (req, res) {
