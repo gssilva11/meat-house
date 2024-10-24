@@ -65,13 +65,13 @@ model Address {
 model Order {       
   id_order          Int                @id @default(autoincrement())
   id_user           Int
-  id_address        Int
+  id_address        Int?
   datetime_order    DateTime           @default(now())
   status            Status
   total             Decimal            @default(0.00)
 
   user              User               @relation(fields: [id_user], references: [id_user])
-  address           Address            @relation(fields: [id_address], references: [id_address])
+  address           Address?            @relation(fields: [id_address], references: [id_address])
 
   orderItem         OrderItem[]
 }       
