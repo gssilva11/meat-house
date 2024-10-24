@@ -57,7 +57,7 @@ const OrderCheckout = () => {
   };
 
   const handleFinishOrder = async () => {
-    if (!user) {
+    if (!user && pickupOption !== 'local') {
       notifyError('Usuário não autenticado.');
       return;
     }
@@ -69,6 +69,7 @@ const OrderCheckout = () => {
     try {
       const total = calculateTotal();
       const orderData = {
+        // Se a opção for "local", usar ID de usuário 0
         id_user: user.id,
         id_address: pickupOption === 'delivery' ? selectedAddress : null,
         status: 'AWAITING',
@@ -101,26 +102,38 @@ const OrderCheckout = () => {
     return <Typography variant="h6" align="center">Seu carrinho está vazio.</Typography>;
   }
 
+  const getBackgroundColor = (status, type) => {
+    if (status === 'READY') {
+      return type === 'delivery' ? '#FFD700' : '#FF6347'; // Amarelo para entrega, vermelho para retirada
+    }
+    return '#FFFFFF'; // Cor padrão (branca)
+  };
+
   return (
     <>
       <Navbar />
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3, maxWidth: 800, margin: '0 auto' }}>
         {/* Revisão do Pedido */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h5">Revisão do Pedido</Typography>
-          <Divider sx={{ my: 1 }} />
+        <Box sx={{ mb: 3, backgroundColor: '#f9f9f9', borderRadius: 2, p: 2 }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Revisão do Pedido</Typography>
+          <Divider sx={{ my: 2 }} />
           {cartItems.map((item, index) => (
-            <Typography key={index}>
-              {item.product.name} - {item.quantity / 1000}Kg - R${(item.priceOnTheDay * (item.quantity / 1000)).toFixed(2)}
-            </Typography>
+            <Box key={index} sx={{ mb: 1 }}>
+              <Typography>
+                <strong>{item.product.name}</strong> - {item.quantity / 1000}Kg - R$
+                {(item.priceOnTheDay * (item.quantity / 1000)).toFixed(2)}
+              </Typography>
+            </Box>
           ))}
-          <Typography variant="h6">Total: R${calculateTotal()}</Typography>
+          <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold' }}>
+            Total: R${calculateTotal()}
+          </Typography>
         </Box>
 
         {/* Entrega */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h5">Entrega</Typography>
-          <Divider sx={{ my: 1 }} />
+        <Box sx={{ mb: 3, backgroundColor: '#f9f9f9', borderRadius: 2, p: 2 }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Entrega</Typography>
+          <Divider sx={{ my: 2 }} />
 
           <FormControl component="fieldset">
             <RadioGroup
@@ -128,14 +141,22 @@ const OrderCheckout = () => {
               value={pickupOption}
               onChange={(e) => setPickupOption(e.target.value)}
             >
-              <FormControlLabel value="local" control={<Radio />} label="Retirada no Local" />
-              <FormControlLabel value="delivery" control={<Radio />} label="Entrega" />
+              <FormControlLabel
+                value="local"
+                control={<Radio />}
+                label="Retirada no Local"
+              />
+              <FormControlLabel
+                value="delivery"
+                control={<Radio />}
+                label="Entrega"
+              />
             </RadioGroup>
           </FormControl>
 
           {pickupOption === 'delivery' && addresses.length > 0 && (
-            <Box>
-              <Typography variant="h6" sx={{ mt: 2 }}>Escolha o Endereço:</Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6">Escolha o Endereço:</Typography>
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 {addresses.map((address) => (
                   <Grid item xs={12} sm={6} md={4} key={address.id_address}>
@@ -143,10 +164,10 @@ const OrderCheckout = () => {
                       elevation={3}
                       sx={{
                         p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
+                        backgroundColor: selectedAddress === address.id_address ? '#e0f7fa' : '#ffffff',
+                        cursor: 'pointer',
                       }}
+                      onClick={() => setSelectedAddress(address.id_address)}
                     >
                       <FormControlLabel
                         control={
@@ -155,7 +176,7 @@ const OrderCheckout = () => {
                             onChange={() => setSelectedAddress(address.id_address)}
                           />
                         }
-                        label={`${address.street}, ${address.number} - ${address.city}, ${address.state}`}
+                        label={`${address.street_name}, ${address.house_number} - ${address.neighborhood} - ${address.city}, ${address.state}`}
                       />
                     </Paper>
                   </Grid>
@@ -177,9 +198,10 @@ const OrderCheckout = () => {
 
         <Button
           variant="contained"
-          color="primary"
+          color="secondary"
           onClick={handleFinishOrder}
           fullWidth
+          sx={{ padding: 2, fontSize: '1.2rem' }}
         >
           Finalizar Compra
         </Button>

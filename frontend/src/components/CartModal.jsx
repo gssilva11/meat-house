@@ -210,9 +210,15 @@ const CartModal = ({ open, onClose }) => {
           </Box>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Total: R${calculateTotal()}</Typography>
-            <Button variant="contained" color="primary" onClick={handleUserClick}>
-              Finalizar Compra
-            </Button>
+            <Button 
+        variant="contained" 
+        color={cartItems.length === 0 ? "grey" : "primary"}
+        disabled={cartItems.length === 0}
+        onClick={handleUserClick}
+      >
+        Finalizar Compra
+      </Button>
+
           </Box>
         </Box>
       </Modal>

@@ -99,7 +99,7 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
     event.preventDefault();
     setSearchResults([]);
     setShowSearchResults(false);
-    setModalOpen(true);
+    setModalOpen(false);
     setSearchTerm('');
   };
 
@@ -174,9 +174,9 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
                     opacity: '90%',
                   }}
                 />
-                <IconButton type="submit" aria-label="search" sx={{ color: '#8B0000' }}>
+                {/* <IconButton type="submit" aria-label="search" sx={{ color: '#8B0000' }}>
                   <SearchIcon />
-                </IconButton>
+                </IconButton> */}
               </form>
             )}
             <IconButton aria-label="cart" sx={{ color: '#8B0000', marginLeft: '20px' }} onClick={handleCartToggle}>
@@ -234,7 +234,7 @@ const Navbar = ({ cartItemCount, setCartItems }) => {
               </ListItemIcon>
               <ListItemText primary="Vitrine" />
             </ListItem>
-            <ListItem button component={Link} to="/requests" onClick={handleDrawerToggle}>
+            <ListItem button component={Link} to="/orderTracking" onClick={handleDrawerToggle}>
               <ListItemIcon>
                 <LoginIcon />
               </ListItemIcon>

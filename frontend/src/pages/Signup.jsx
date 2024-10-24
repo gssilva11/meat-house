@@ -350,6 +350,19 @@ const Signup = () => {
           </Paper>
         </Box>
       </Container>
+      <Box sx={{ textAlign: 'center', mt: 2 }}>
+        <Typography variant="body2" sx={{ color: '#f0f0f0' }}>
+          Já tem uma conta?{' '}
+          <Button
+            variant="text"
+            color="secondary"
+            onClick={() => navigate('/login')}
+            sx={{ textDecoration: 'underline' }}
+          >
+            Entrar
+          </Button>
+        </Typography>
+      </Box>
       <Notification />
     </>
   );

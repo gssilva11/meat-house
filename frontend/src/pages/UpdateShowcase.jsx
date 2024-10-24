@@ -20,7 +20,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import myfetch from '../utils/myfetch';
 import Navbar from '../components/Navbar';
 import ButtonsPageTable from '../components/ButtonsPageTable.jsx';
-import InputMask from 'react-input-mask';
 
 const UpdateShowcase = () => {
   const [products, setProducts] = useState([]);
@@ -160,7 +159,6 @@ const UpdateShowcase = () => {
   const columns = [
     { field: 'name', headerName: 'Nome', flex: 1 },
     { field: 'price', headerName: 'Preço (R$)', flex: 1, align: 'center', headerAlign: 'center' },
-    { field: 'weight', headerName: 'Peso (g)', flex: 1, align: 'center', headerAlign: 'center' },
     { field: 'category', headerName: 'Categoria', flex: 1, align: 'center', headerAlign: 'center' },
     {
       field: 'availability',
@@ -663,246 +661,240 @@ const UpdateShowcase = () => {
         </Box>
       </Modal>
 
-{/* MODAL DE CRIAÇÃO DE PRODUTO */}
-<Modal
-  open={createModalOpen}
-  onClose={() => {
-    setCreateModalOpen(false);
-    setNewProduct({ ...newProduct, imageProduct: '' });
-  }}
->
-  <Box sx={{
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 600,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p: 4,
-    borderRadius: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem'
-  }}>
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <IconButton onClick={() => {
-        setCreateModalOpen(false);
-        setNewProduct({ ...newProduct, imageProduct: '' });
-      }} sx={{ alignSelf: 'flex-start', position: 'absolute' }}>
-        <ArrowBackIcon />
-      </IconButton>
-      <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center', mb: '10px' }}>
-        Criar Novo Produto
-      </Typography>
-    </Box>
-
-    <Box sx={{ display: 'flex', gap: '1rem' }}>
-      <TextField
-        name="name"
-        label="Nome"
-        variant="outlined"
-        value={newProduct.name}
-        onChange={handleCreateChange}
-        fullWidth
-        sx={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '4px',
-          '& .MuiInputBase-input': {
-            color: '#020002',
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: '#020002',
-            },
-            '&:hover fieldset': {
-              borderColor: 'red',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: 'black',
-            },
-          },
-        }}
-      />
-      <TextField
-        name="price"
-        label="Preço"
-        variant="outlined"
-        type="number"
-        value={newProduct.price}
-        onChange={handleCreateChange}
-        fullWidth
-        sx={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '4px',
-          '& .MuiInputBase-input': {
-            color: '#020002',
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: '#020002',
-            },
-            '&:hover fieldset': {
-              borderColor: 'red',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: 'black',
-            },
-          },
-        }}
-      />
-    </Box>
-
-    {/* Exibição do nome da imagem */}
-    <Box sx={{
-      display: 'flex',
-      alignItems: 'center',
-      height: '56px',
-      width: '100%'
-    }}>
-      <Typography
-        variant="body1"
-        sx={{
-          border: '1px solid #020002',
-          fontSize: '15px',
-          borderRadius: '3px',
-          padding: '1px 5px',
-          backgroundColor: '#FDFDFD',
-          color: '#0F0F0F',
-          whiteSpace: 'normal',
-          wordWrap: 'break-word',
-          overflow: 'hidden',
-          flexGrow: 1,
-          height: '56px',
+      {/* MODAL DE CRIAÇÃO DE PRODUTO */}
+      <Modal
+        open={createModalOpen}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setNewProduct({ ...newProduct, imageProduct: '' });
         }}
       >
-        {newProduct.imageProduct || 'Nenhum arquivo selecionado'}
-      </Typography>
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 600,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton onClick={() => {
+              setCreateModalOpen(false);
+              setNewProduct({ ...newProduct, imageProduct: '' });
+            }} sx={{ alignSelf: 'flex-start', position: 'absolute' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center', mb: '10px' }}>
+              Criar Novo Produto
+            </Typography>
+          </Box>
 
-      {/* Escolha de Imagem */}
-      <Button
-        variant="contained"
-        component="label"
-        sx={{
-          fontSize: '12px',
-          backgroundColor: '#C62828',
-          color: '#FFF',
-          borderRadius: '4px',
-          marginRight: '8px',
-          height: '56px',
-          width: '150px',
-          marginLeft: '1rem'
-        }}
-      >
-        Escolher Imagem
-        <input
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (file) {
-              // Atualizando o estado para mostrar o nome do arquivo na UI
-              setNewProduct((prev) => ({
-                ...prev,
-                imageProduct: file.name,
-              }));
-            }
-          }}
-        />
-      </Button>
-    </Box>
+          <Box sx={{ display: 'flex', gap: '1rem' }}>
+            <TextField
+              name="name"
+              label="Nome"
+              variant="outlined"
+              value={newProduct.name}
+              onChange={handleCreateChange}
+              fullWidth
+              sx={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '4px',
+                '& .MuiInputBase-input': {
+                  color: '#020002',
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#020002',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'red',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'black',
+                  },
+                },
+              }}
+            />
+            <TextField
+              name="price"
+              label="Preço"
+              variant="outlined"
+              type="number"
+              value={newProduct.price}
+              onChange={handleCreateChange}
+              fullWidth
+              sx={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '4px',
+                '& .MuiInputBase-input': {
+                  color: '#020002',
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#020002',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'red',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'black',
+                  },
+                },
+              }}
+            />
+          </Box>
 
-    <Box sx={{ display: 'flex', gap: '1rem' }}>
-      <FormControl
-        variant="outlined"
-        fullWidth
-        sx={{
-          width: '259px',
-          backgroundColor: '#FFF',
-          borderRadius: '4px',
-          '& .MuiInputBase-input': {
-            color: '#020002',
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: '#020002',
-            },
-            '&:hover fieldset': {
-              borderColor: 'red',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: 'black',
-            },
-          },
-        }}
-      >
-        <InputLabel>Categoria</InputLabel>
-        <Select
-          name="category"
-          value={newProduct.category}
-          onChange={handleCreateChange}
-          label="Categoria"
-        >
-          <MenuItem value="">
-            <em>Selecione uma categoria</em>
-          </MenuItem>
-          {categories.map(category => (
-            <MenuItem key={category} value={category}>{category}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+          {/* Exibição do nome da imagem */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '56px',
+            width: '100%'
+          }}>
+            <Typography
+              variant="body1"
+              sx={{
+                border: '1px solid #020002',
+                fontSize: '15px',
+                borderRadius: '3px',
+                padding: '1px 5px',
+                backgroundColor: '#FDFDFD',
+                color: '#0F0F0F',
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                flexGrow: 1,
+                height: '56px',
+              }}
+            >
+              {newProduct.imageProduct || 'Nenhum arquivo selecionado'}
+            </Typography>
 
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={newProduct.availability}
-            onChange={() => setNewProduct({ ...newProduct, availability: !newProduct.availability })}
-          />
-        }
-        label="Disponível"
-        sx={{ flexGrow: 1 }}
-      />
-    </Box>
+            {/* Escolha de Imagem */}
+            <Button
+              variant="contained"
+              component="label"
+              sx={{
+                fontSize: '12px',
+                backgroundColor: '#C62828',
+                color: '#FFF',
+                borderRadius: '4px',
+                marginRight: '8px',
+                height: '56px',
+                width: '150px',
+                marginLeft: '1rem'
+              }}
+            >
+              Escolher Imagem
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    // Atualizando o estado para mostrar o nome do arquivo na UI
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      imageProduct: file.name,
+                    }));
+                  }
+                }}
+              />
+            </Button>
+          </Box>
 
-    {/* Botões de ação */}
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', mt: 2 }}>
-      <Button
-        variant="contained"
-        onClick={() => setCreateModalOpen(false)}
-        sx={{
-          backgroundColor: '#FFFFFF',
-          color: '#8B0000',
-          '&:hover': {
-            backgroundColor: '#f0f0f0',
-          },
-        }}
-      >
-        Cancelar
-      </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleCreateProduct}
-        sx={{
-          backgroundColor: '#C62828',
-          color: '#FFFFFF',
-          '&:hover': {
-            backgroundColor: '#600000',
-          },
-        }}
-      >
-        Adicionar
-      </Button>
-    </Box>
-  </Box>
-</Modal>
+          <Box sx={{ display: 'flex', gap: '1rem' }}>
+            <FormControl
+              variant="outlined"
+              fullWidth
+              sx={{
+                width: '259px',
+                backgroundColor: '#FFF',
+                borderRadius: '4px',
+                '& .MuiInputBase-input': {
+                  color: '#020002',
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#020002',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'red',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'black',
+                  },
+                },
+              }}
+            >
+              <InputLabel>Categoria</InputLabel>
+              <Select
+                name="category"
+                value={newProduct.category}
+                onChange={handleCreateChange}
+                label="Categoria"
+              >
+                <MenuItem value="">
+                  <em>Selecione uma categoria</em>
+                </MenuItem>
+                {categories.map(category => (
+                  <MenuItem key={category} value={category}>{category}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newProduct.availability}
+                  onChange={() => setNewProduct({ ...newProduct, availability: !newProduct.availability })}
+                />
+              }
+              label="Disponível"
+              sx={{ flexGrow: 1 }}
+            />
+          </Box>
 
-
-
-
-
+          {/* Botões de ação */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', mt: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => setCreateModalOpen(false)}
+              sx={{
+                backgroundColor: '#FFFFFF',
+                color: '#8B0000',
+                '&:hover': {
+                  backgroundColor: '#f0f0f0',
+                },
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreateProduct}
+              sx={{
+                backgroundColor: '#C62828',
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: '#600000',
+                },
+              }}
+            >
+              Adicionar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
       <ButtonsPageTable />
     </>
   );

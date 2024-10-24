@@ -29,20 +29,39 @@ const Tilt = ({ children }) => {
 };
 
 const OrderTracking = () => {
-  const [orders, setOrders] = useState({ awaiting: [], preparing: [], ready: [] });
+  const [orders, setOrders] = useState({ awaiting: [], preparing: [], readyForPickup: [], readyForDelivery: [] });
+  const [users, setUsers] = useState({});
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
 
   useEffect(() => {
+    // Busca os pedidos
     myfetch.get('/order')
       .then((response) => {
         const filteredOrders = {
           awaiting: response.map(order => ({ ...order, total: Number(order.total) })).filter(order => order.status === 'AWAITING'),
           preparing: response.map(order => ({ ...order, total: Number(order.total) })).filter(order => order.status === 'PREPARING'),
-          ready: response.map(order => ({ ...order, total: Number(order.total) })).filter(order => order.status === 'READY'),
+          readyForPickup: response.map(order => ({ ...order, total: Number(order.total) })).filter(order => order.status === 'READY' && order.id_address === null),
+          readyForDelivery: response.map(order => ({ ...order, total: Number(order.total) })).filter(order => order.status === 'READY' && order.id_address !== null),
         };
         setOrders(filteredOrders);
+
+        // Extraindo ids únicos de usuários dos pedidos
+        const userIds = Array.from(new Set(response.map(order => order.id_user)));
+        
+        // Busca os usuários relacionados aos pedidos
+        Promise.all(userIds.map(id => myfetch.get(`/user/${id}`)))
+          .then((userResponses) => {
+            const userMap = {};
+            userResponses.forEach((user) => {
+              userMap[user.id_user] = `${user.first_name} ${user.last_name}`;
+            });
+            setUsers(userMap);
+          })
+          .catch(() => {
+            console.error('Erro ao buscar informações dos usuários.');
+          });
       })
       .catch(() => {
         console.error('Erro ao buscar pedidos.');
@@ -87,7 +106,7 @@ const OrderTracking = () => {
   const renderOrderDetails = (order) => (
     <Box>
       <Typography variant="h6" gutterBottom>Detalhes do Pedido Nº {order.id_order}</Typography>
-      <Typography>Cliente: {order.id_user}</Typography>
+      <Typography>Cliente: {users[order.id_user] || 'Desconhecido'}</Typography>
       <Typography>Endereço: {order.id_address || 'Não informado'}</Typography>
       <Typography>Valor Total: R$ {order.total.toFixed(2)}</Typography>
       <Box mt={2}>
@@ -151,7 +170,7 @@ const OrderTracking = () => {
           >
             <Typography variant="h6">Pedido Nº {order.id_order}</Typography>
             <Typography>Total: R$ {isNaN(total) ? '0.00' : total.toFixed(2)}</Typography>
-            <Typography>Cliente ID: {order.id_user}</Typography>
+            <Typography>Cliente: {users[order.id_user] || 'Desconhecido'}</Typography>
           </Paper>
         </Tilt>
       );
@@ -164,7 +183,7 @@ const OrderTracking = () => {
       <Box sx={{ p: 3, backgroundColor: '#000000', minHeight: '100vh' }}>
         <Grid container spacing={2}>
           {/* Novos Pedidos */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Box
               sx={{
                 backgroundColor: '#7F0000',
@@ -185,7 +204,7 @@ const OrderTracking = () => {
           </Grid>
 
           {/* Em Andamento */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Box
               sx={{
                 backgroundColor: '#B71C1C',
@@ -205,11 +224,11 @@ const OrderTracking = () => {
             </Box>
           </Grid>
 
-          {/* Entrega / Retirada */}
-          <Grid item xs={12} md={4}>
+          {/* Pronto para Retirada */}
+          <Grid item xs={12} md={3}>
             <Box
               sx={{
-                backgroundColor: '#B71C1C',
+                backgroundColor: '#E53935',
                 p: 2,
                 borderRadius: 1,
                 boxShadow: 3,
@@ -219,34 +238,56 @@ const OrderTracking = () => {
                 overflowY: 'auto',
               }}
             >
-              <Typography variant="h5" style={{ fontWeight: 'bold' }}>ENTREGA / RETIRADA</Typography>
+              <Typography variant="h5" style={{ fontWeight: 'bold' }}>PRONTO PARA RETIRADA</Typography>
               <Box sx={{ mt: 2 }}>
-                {renderOrders(orders.ready)}
+                {renderOrders(orders.readyForPickup)}
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Pronto para Entrega */}
+          <Grid item xs={12} md={3}>
+            <Box
+              sx={{
+                backgroundColor: '#FF5252',
+                p: 2,
+                borderRadius: 1,
+                boxShadow: 3,
+                color: 'white',
+                textAlign: 'center',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+              }}
+            >
+              <Typography variant="h5" style={{ fontWeight: 'bold' }}>PRONTO PARA ENTREGA</Typography>
+              <Box sx={{ mt: 2 }}>
+                {renderOrders(orders.readyForDelivery)}
               </Box>
             </Box>
           </Grid>
         </Grid>
-      </Box>
 
-      {/* Modal para Detalhes do Pedido */}
-      <Modal
-        open={openModal}
-        onClose={handleCloseModal}
-        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-      >
-        <Box
-          sx={{
-            width: '60%',
-            backgroundColor: 'white',
-            borderRadius: 2,
-            p: 4,
-            maxHeight: '80vh',
-            overflowY: 'auto',
-          }}
-        >
-          {selectedOrder && renderOrderDetails(selectedOrder)}
-        </Box>
-      </Modal>
+        {/* Modal para exibir e editar detalhes do pedido */}
+        <Modal open={openModal} onClose={handleCloseModal}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: 'white',
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+              width: '80vw',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+            }}
+          >
+            {selectedOrder && renderOrderDetails(selectedOrder)}
+          </Box>
+        </Modal>
+      </Box>
     </>
   );
 };
