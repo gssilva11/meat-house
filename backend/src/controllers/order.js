@@ -78,6 +78,34 @@ controller.create = async function (req, res) {
 };
 
 
+controller.retrieveByUserIdAndStatus = async function (req, res) {
+  const { userId, status_ne } = req.query;
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        id_user: Number(userId),
+        NOT: { status: status_ne },
+      },
+      include: {
+        orderItem: { // Ajuste para o singular "orderItem"
+          include: {
+            product: true,
+            cuttingType: true, // cuttingType é string, então pode manter assim
+          },
+        },
+        user: true,   // Inclui os dados do usuário
+        address: true, // Inclui os dados do endereço
+      },
+      orderBy: { datetime_order: 'desc' },
+    });
+
+    res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+};
+
 
 // Buscar todas as ordens
 controller.retrieveAll = async function (req, res) {
